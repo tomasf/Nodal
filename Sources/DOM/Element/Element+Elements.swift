@@ -38,7 +38,7 @@ public extension Element {
     }
 
     subscript(elements localName: String, uri namespaceURI: String) -> [Element] {
-        self[elements: ExpandedName(uri: namespaceURI, localName: localName)]
+        self[elements: ExpandedName(namespaceName: namespaceURI, localName: localName)]
     }
 
     subscript(element targetName: ExpandedName) -> Element? {
@@ -51,7 +51,7 @@ public extension Element {
     }
 
     subscript (element localName: String, uri namespaceURI: String) -> Element? {
-        self[element: ExpandedName(uri: namespaceURI, localName: localName)]
+        self[element: ExpandedName(namespaceName: namespaceURI, localName: localName)]
     }
 
     // Add an element with a given qualified name
@@ -71,13 +71,13 @@ public extension Element {
     // Add an element in a namespace that has been declared in this element or in one of its ancestors
     @discardableResult
     func appendElement(_ localName: String, uri namespaceURI: String?) -> Element {
-        appendElement(ExpandedName(uri: namespaceURI, localName: localName))
+        appendElement(ExpandedName(namespaceName: namespaceURI, localName: localName))
     }
 
     // Add an element that declares a new namespace, where the element itself is part of that namespace
     @discardableResult
     func appendElement(_ name: ExpandedName, declaringNamespaceWith prefix: String?) -> Element {
-        guard let uri = name.uri else {
+        guard let uri = name.namespaceName else {
             preconditionFailure("You can't declare an empty namespace")
         }
         let namespaces = [prefix: uri]

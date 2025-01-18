@@ -3,12 +3,32 @@ import pugixml
 import Bridge
 
 public class Node {
-    public let document: Document
+    private let owningDocument: Document?
     internal var node: pugi.xml_node
 
-    internal required init(document: Document, node: pugi.xml_node) {
-        self.document = document
+    internal required init(owningDocument: Document?, node: pugi.xml_node) {
+        self.owningDocument = owningDocument
         self.node = node
+    }
+
+    public var document: Document {
+        guard let owningDocument else {
+            fatalError("owningDocument should only be nil for Document, which overrides this property")
+        }
+        return owningDocument
+    }
+
+    public func xmlData(encoding: String.Encoding = .utf8, options: OutputOptions = .default, indentation: String = .fourSpaces) -> Data {
+        var data = Data()
+        xml_node_print_with_block(node, indentation, options.rawValue, encoding.pugiEncoding, 0) { rawPointer, length in
+            guard let rawPointer else { return }
+            data.append(rawPointer.assumingMemoryBound(to: UInt8.self), count: length)
+        }
+        return data
+    }
+
+    public func xmlString(options: OutputOptions = .default, indentation: String = .fourSpaces) -> String {
+        String(data: xmlData(encoding: .utf8, options: options, indentation: indentation), encoding: .utf8) ?? ""
     }
 }
 
@@ -29,6 +49,10 @@ extension Node: Equatable {
 }
 
 public extension Node {
+    // The name of the node. For elements, this is the qualified name, i.e. a local name
+    // with or without a namespace prefix. For processing instructions, the name represents
+    // the target. For other kinds of nodes, name is nil.
+    // See also: `Element.expandedName`
     var name: String {
         get {
             String(cString: node.name()) // documented to never return null
@@ -38,6 +62,8 @@ public extension Node {
         }
     }
 
+    // The value of the node. This is available for text, CDATA, comments,
+    // DOCTYPEs and processing instructions. For other kinds of nodes, value is nil.
     var value: String {
         get {
             String(cString: node.value()) // documented to never return null
@@ -58,7 +84,8 @@ public extension Node {
     }
 
     var parent: Node? {
-        document.object(for: node.parent())
+        let parentNode = node.parent()
+        return parentNode.empty() ? nil : document.object(for: parentNode)
     }
 
     func removeChild(_ child: Node) {
@@ -69,26 +96,20 @@ public extension Node {
         node.remove_children()
     }
 
-    func xmlData(encoding: String.Encoding = .utf8, options: OutputOptions = .default, indentation: String = .fourSpaces) -> Data {
-        var data = Data()
-        xml_node_print_with_block(node, indentation, options.rawValue, encoding.pugiEncoding, 0) { rawPointer, length in
-            guard let rawPointer else { return }
-            data.append(rawPointer.assumingMemoryBound(to: UInt8.self), count: length)
-        }
-        return data
-    }
-
-    func xmlString(options: OutputOptions = .default, indentation: String = .fourSpaces) -> String {
-        String(data: xmlData(encoding: .utf8, options: options, indentation: indentation), encoding: .utf8) ?? ""
-    }
-
-    var xmlString: String {
-        xmlString(options: .default)
-    }
-
     // Traverse the entire tree within this node. Return true from the function to continue; false to stop
     func traverseTree(_ function: @escaping (Node, _ level: Int) -> Bool) {
         traverse { function(self.document.object(for: $0), $1) }
+    }
+
+    func isDescendant(of ancestor: Node) -> Bool {
+        var node = self.node
+        while !node.empty() {
+            if node == ancestor.node {
+                return true
+            }
+            node = node.parent()
+        }
+        return false
     }
 }
 
@@ -99,15 +120,11 @@ extension Node: CustomDebugStringConvertible {
         case .text: "Text \"(\(value))\""
         case .cdata: "CDATA \"(\(value))\""
         case .comment: "Comment <!--\(value)-->"
-        case .doctype: "DOCTYPE <!DOCTYPE \(value)>"
-        case .processingInstruction: "Processing instruction <?\(name) \(value)?>"
+        case .doctype: "<!DOCTYPE \(value)>"
+        case .processingInstruction: "PI <?\(name) \(value)?>"
         case .document: "Document"
         }
     }
 }
 
-internal extension pugi.xpath_node_set {
-    var nodes: [pugi.xpath_node] {
-        (0..<size()).map { self[$0] }
-    }
-}
+

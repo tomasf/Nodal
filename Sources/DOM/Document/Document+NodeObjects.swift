@@ -4,26 +4,18 @@ import pugixml
 internal extension Document {
     // Associate an Element object with an element node
     func setElementObject(_ element: Element, forNode node: pugi.xml_node) {
-        NSMapInsert(
-            objectDirectory,
-            UnsafeRawPointer(node.internal_object()),
-            UnsafeRawPointer(Unmanaged.passUnretained(element).toOpaque())
-        )
+        objectDirectory[node.internal_object()] = element
     }
 
     // Fetches any already existing Element object for a given element node
     func existingElementObject(forNode node: pugi.xml_node) -> Element? {
-        //print("Getting object. Count: \(objectDirectory.count)")
-        guard let pointer = NSMapGet(objectDirectory, UnsafeRawPointer(node.internal_object())) else {
-            return nil
-        }
-        return Unmanaged<Element>.fromOpaque(pointer).takeUnretainedValue()
+        objectDirectory[node.internal_object()]
     }
 
     // Create a new Element object for a given node
     // This can be used directly for newly created nodes, to avoid checking the map table first
     func createElementObject(forNode node: pugi.xml_node) -> Element {
-        let new = Element(document: self, node: node)
+        let new = Element(owningDocument: self, node: node)
         setElementObject(new, forNode: node)
         //print("Created object. Count: \(objectDirectory.count)")
         return new
@@ -45,7 +37,7 @@ internal extension Document {
         if node.type() == pugi.node_element {
             return element(for: node)
         } else {
-            return Node(document: self, node: node)
+            return Node(owningDocument: self, node: node)
         }
     }
 }

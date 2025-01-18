@@ -2,15 +2,35 @@ import Foundation
 import pugixml
 import Bridge
 
-public class Document {
+public class Document: Node {
     internal var pugiDocument = pugi.xml_document()
-    internal var objectDirectory = NSMapTable<AnyObject, AnyObject>(keyOptions: [.opaqueMemory, .opaquePersonality], valueOptions: .weakMemory)
-    internal init(root: ()) {}
+    internal var objectDirectory = WeakObjectTable<Element>()
+
+    internal required init(owningDocument: Document?, node: pugi.xml_node) {
+        super.init(owningDocument: nil, node: pugiDocument.asNode)
+    }
+
+    public override var document: Document {
+        self
+    }
+
+    public override func xmlData(encoding: String.Encoding = .utf8, options: OutputOptions = .default, indentation: String = .fourSpaces) -> Data {
+        var data = Data()
+        xml_document_save_with_block(pugiDocument, indentation, options.rawValue, encoding.pugiEncoding) { rawPointer, length in
+            guard let rawPointer else { return }
+            data.append(rawPointer.assumingMemoryBound(to: UInt8.self), count: length)
+        }
+        return data
+    }
+
+    public override func xmlString(options: OutputOptions = .default, indentation: String = .fourSpaces) -> String {
+        String(data: xmlData(encoding: .utf8, options: options, indentation: indentation), encoding: .utf8) ?? ""
+    }
 }
 
 public extension Document {
     convenience init(xmlString: String, options: ParseOptions = .default) throws(ParseError) {
-        self.init(root: ())
+        self.init()
         let result = pugiDocument.load_string(xmlString, options.rawValue)
         if result.status != pugi.status_ok {
             throw ParseError(result)
@@ -18,7 +38,7 @@ public extension Document {
     }
 
     convenience init(data: Data, encoding: String.Encoding? = nil, options: ParseOptions = .default) throws(ParseError) {
-        self.init(root: ())
+        self.init()
         let result = data.withUnsafeBytes { bufferPointer in
             pugiDocument.load_buffer(bufferPointer.baseAddress, bufferPointer.count, options.rawValue, encoding?.pugiEncoding ?? pugi.encoding_auto)
         }
@@ -28,7 +48,7 @@ public extension Document {
     }
 
     convenience init(url: URL, encoding: String.Encoding? = nil, options: ParseOptions = .default) throws(ParseError) {
-        self.init(root: ())
+        self.init()
         let result = url.withUnsafeFileSystemRepresentation { path in
             pugiDocument.load_file(path, options.rawValue, encoding?.pugiEncoding ?? pugi.encoding_auto)
         }
@@ -37,26 +57,29 @@ public extension Document {
         }
     }
 
+    // Create a new empty XML document
     convenience init() {
-        self.init(root: ())
+        self.init(owningDocument: nil, node: .init())
     }
 }
 
-public extension Document {
-    var rootElement: Element? {
-        let root = pugiDocument.__document_elementUnsafe()
-        return root.empty() ? nil : element(for: root)
-    }
-
-    internal func clearRootElement() -> Element {
-        if let oldRoot = rootElement {
-            node.removeChild(oldRoot)
+internal extension Document {
+    func clearRootElement() -> Element {
+        if let oldRoot = documentElement {
+            removeChild(oldRoot)
         }
         let rootNode = pugiDocument.append_child(pugi.node_element)
         return element(for: rootNode)
     }
+}
 
-    func makeRootElement(name: String, defaultNamespace uri: String? = nil) -> Element {
+public extension Document {
+    var documentElement: Element? {
+        let root = pugiDocument.__document_elementUnsafe()
+        return root.empty() ? nil : element(for: root)
+    }
+
+    func makeDocumentElement(name: String, defaultNamespace uri: String? = nil) -> Element {
         let element = clearRootElement()
         element.name = name
         if let uri {
@@ -65,32 +88,15 @@ public extension Document {
         return element
     }
 
-    func makeRootElement(name: ExpandedName, declaringNamespaceFor prefix: String) -> Element {
+    func makeDocumentElement(name: ExpandedName, declaringNamespaceFor prefix: String) -> Element {
         let element = clearRootElement()
-        if let uri = name.uri {
+        if let uri = name.namespaceName {
             element.declareNamespace(uri, for: prefix)
             element.expandedName = name
         } else {
             element.name = name.localName
         }
         return element
-    }
-
-    var node: Node {
-        object(for: xml_document_as_node(pugiDocument))
-    }
-
-    func xmlData(encoding: String.Encoding = .utf8, options: OutputOptions = .default, indentation: String = .fourSpaces) -> Data {
-        var data = Data()
-        xml_document_save_with_block(pugiDocument, indentation, options.rawValue, encoding.pugiEncoding) { rawPointer, length in
-            guard let rawPointer else { return }
-            data.append(rawPointer.assumingMemoryBound(to: UInt8.self), count: length)
-        }
-        return data
-    }
-
-    func xmlString(options: OutputOptions = .default, indentation: String = .fourSpaces) -> String {
-        String(data: xmlData(encoding: .utf8, options: options, indentation: indentation), encoding: .utf8) ?? ""
     }
 
     func save(
@@ -111,4 +117,3 @@ public extension Document {
     }
 }
 
-extension pugi.xml_node_type: Hashable {}

@@ -15,7 +15,7 @@ public extension Element {
             node.remove_attributes()
             for (name, value) in newValue {
                 guard let qName = name.qualifiedAttributeName(using: namespaces) else {
-                    fatalError("Undeclared namespace \(name.uri ?? "")")
+                    fatalError("Undeclared namespace \(name.namespaceName ?? "")")
                 }
                 var attr = node.append_attribute(qName)
                 attr.set_value(value)
@@ -37,7 +37,7 @@ public extension Element {
         set {
             // Setting with one is not.
             guard let qName = name.qualifiedAttributeName(using: namespacesInScope) else {
-                fatalError("Undeclared namespace \(name.uri ?? "")")
+                fatalError("Undeclared namespace \(name.namespaceName ?? "")")
             }
             self[attribute: qName] = newValue
         }
@@ -45,10 +45,10 @@ public extension Element {
 
     subscript(attribute localName: String, uri namespaceURI: String?) -> String? {
         get {
-            self[attribute: ExpandedName(uri: namespaceURI, localName: localName)]
+            self[attribute: ExpandedName(namespaceName: namespaceURI, localName: localName)]
         }
         set {
-            self[attribute: ExpandedName(uri: namespaceURI, localName: localName)] = newValue
+            self[attribute: ExpandedName(namespaceName: namespaceURI, localName: localName)] = newValue
         }
     }
 }

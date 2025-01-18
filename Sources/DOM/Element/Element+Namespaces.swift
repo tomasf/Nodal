@@ -67,19 +67,6 @@ public extension Element {
         return namespaces
     }
 
-    /*
-    internal func namespacesInScope(parentNamespaces: [String?: String]) -> [String?: String] {
-        var namespaces: [String?: String] = [:]
-        addDeclaredNamespaces(to: &namespaces)
-        for (key, value) in parentNamespaces {
-            if namespaces[key] == nil {
-                namespaces[key] = value
-            }
-        }
-        return namespaces
-    }
-     */
-
     var defaultNamespaceURI: String? {
         namespacesInScope[nil]
     }
@@ -97,7 +84,7 @@ public extension Element {
     }
 
     var expandedName: ExpandedName {
-        get { ExpandedName(uri: namespaceURI, localName: localName) }
+        get { ExpandedName(namespaceName: namespaceURI, localName: localName) }
         set { name = newValue.qualifiedElementName(using: namespacesInScope) }
     }
 }

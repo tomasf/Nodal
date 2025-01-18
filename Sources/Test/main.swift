@@ -3,7 +3,7 @@ import Foundation
 
 let document = Document()
 
-let root = document.makeRootElement(name: "rolf", defaultNamespace: "hajjjj")
+let root = document.makeDocumentElement(name: "rolf", defaultNamespace: "hajjjj")
 root[attribute: "haj"] = "korv"
 root.declareNamespace("tjosan", for: "tj")
 let bubb = root.appendElement("bubb", uri: "tjosan")
@@ -25,7 +25,7 @@ print("o1 == o3: ", o1 === o3)
 print("o2 == o3: ", o2 === o3)
 
 root.appendComment("haha naajes")
-bubb.document.rootElement?[attribute: "add"] = "added!"
+bubb.document.documentElement?[attribute: "add"] = "added!"
 print("Whole document: ", document.xmlString())
 
 print("Match ", root[elements: "bubb", uri: "tjosan"])
