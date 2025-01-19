@@ -10,6 +10,10 @@ internal extension String {
         guard let colon = range(of: ":") else { return self }
         return String(self[colon.upperBound...])
     }
+
+    init(prefix: String?, localPart: String) {
+        self = if let prefix { prefix + ":" + localPart } else { localPart }
+    }
 }
 
 public extension String {

@@ -4,7 +4,8 @@ import Bridge
 
 public class Document: Node {
     internal var pugiDocument = pugi.xml_document()
-    internal var objectDirectory = WeakObjectTable<Element>()
+    internal var objectDirectory = PointerToObjectMap<Element>(strength: .weak)
+    internal var pendingNamespaceRecords = PointerToObjectMap<PendingNameRecord>(strength: .strong)
 
     internal required init(owningDocument: Document?, node: pugi.xml_node) {
         super.init(owningDocument: nil, node: pugiDocument.asNode)
@@ -14,17 +15,23 @@ public class Document: Node {
         self
     }
 
-    public override func xmlData(encoding: String.Encoding = .utf8, options: OutputOptions = .default, indentation: String = .fourSpaces) -> Data {
+    public override func xmlData(
+        encoding: String.Encoding = .utf8,
+        options: OutputOptions = .default,
+        indentation: String = .fourSpaces
+    ) throws(OutputError) -> Data {
+
+        let undeclared = document.undeclaredNamespaceNames
+        guard undeclared.isEmpty else {
+            throw .undeclaredNamespaces(undeclared)
+        }
+
         var data = Data()
         xml_document_save_with_block(pugiDocument, indentation, options.rawValue, encoding.pugiEncoding) { rawPointer, length in
             guard let rawPointer else { return }
             data.append(rawPointer.assumingMemoryBound(to: UInt8.self), count: length)
         }
         return data
-    }
-
-    public override func xmlString(options: OutputOptions = .default, indentation: String = .fourSpaces) -> String {
-        String(data: xmlData(encoding: .utf8, options: options, indentation: indentation), encoding: .utf8) ?? ""
     }
 }
 
@@ -37,7 +44,7 @@ public extension Document {
         }
     }
 
-    convenience init(data: Data, encoding: String.Encoding? = nil, options: ParseOptions = .default) throws(ParseError) {
+    convenience init(xmlData data: Data, encoding: String.Encoding? = nil, options: ParseOptions = .default) throws(ParseError) {
         self.init()
         let result = data.withUnsafeBytes { bufferPointer in
             pugiDocument.load_buffer(bufferPointer.baseAddress, bufferPointer.count, options.rawValue, encoding?.pugiEncoding ?? pugi.encoding_auto)
@@ -73,6 +80,32 @@ internal extension Document {
     }
 }
 
+internal extension Document {
+    func pendingNameRecord(for element: Element) -> PendingNameRecord? {
+        pendingNamespaceRecords[element.nodePointer]
+    }
+
+    func addPendingNameRecord(for element: Element) -> PendingNameRecord {
+        let record = PendingNameRecord(element: element)
+        pendingNamespaceRecords[element.nodePointer] = record
+        return record
+    }
+
+    func removePendingRecord(for element: Element) {
+        pendingNamespaceRecords[element.nodePointer] = nil
+    }
+
+    func pendingNameRecords(forDescendantsOf parent: Element) -> [(Element, PendingNameRecord)] {
+        pendingNamespaceRecords.contents.compactMap {
+            $1.belongsToTree(parent) ? (element(for: .init($0)), $1) : nil
+        }
+    }
+
+    var pendingNameRecordCount: Int {
+        pendingNamespaceRecords.count
+    }
+}
+
 public extension Document {
     var documentElement: Element? {
         let root = pugiDocument.__document_elementUnsafe()
@@ -83,7 +116,7 @@ public extension Document {
         let element = clearRootElement()
         element.name = name
         if let uri {
-            element.declareNamespace(uri, for: nil)
+            element.declareNamespace(uri, forPrefix: nil)
         }
         return element
     }
@@ -91,12 +124,16 @@ public extension Document {
     func makeDocumentElement(name: ExpandedName, declaringNamespaceFor prefix: String) -> Element {
         let element = clearRootElement()
         if let uri = name.namespaceName {
-            element.declareNamespace(uri, for: prefix)
+            element.declareNamespace(uri, forPrefix: prefix)
             element.expandedName = name
         } else {
             element.name = name.localName
         }
         return element
+    }
+
+    var undeclaredNamespaceNames: Set<String> {
+        Set(pendingNamespaceRecords.contents.flatMap(\.value.namespaceNames))
     }
 
     func save(

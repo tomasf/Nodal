@@ -65,12 +65,14 @@ public extension Element {
     // Add an element in a namespace that has been declared in this element or in one of its ancestors
     @discardableResult
     func appendElement(_ name: ExpandedName) -> Element {
-        appendElement(name.qualifiedElementName(using: namespacesInScope))
+        let child = appendElement("")
+        child.expandedName = name
+        return child
     }
 
     // Add an element in a namespace that has been declared in this element or in one of its ancestors
     @discardableResult
-    func appendElement(_ localName: String, uri namespaceURI: String?) -> Element {
+    func appendElement(_ localName: String, namespace namespaceURI: String?) -> Element {
         appendElement(ExpandedName(namespaceName: namespaceURI, localName: localName))
     }
 
@@ -82,7 +84,7 @@ public extension Element {
         }
         let namespaces = [prefix: uri]
         let element = appendElement(name.qualifiedElementName(using: namespaces))
-        element.declareNamespace(uri, for: prefix)
+        element.declareNamespace(uri, forPrefix: prefix)
         return element
     }
 }

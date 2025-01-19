@@ -55,4 +55,8 @@ public extension Document {
             }
         }
     }
+
+    enum OutputError: Error {
+        case undeclaredNamespaces (Set<String>)
+    }
 }

@@ -43,7 +43,7 @@ public extension XPathQuery {
 
     func evaluate(with node: Node) -> [XPathResultNode] {
         let nodeSet = query.evaluate_node_set(.init(node.node))
-        return nodeSet.nodes.map { XPathResultNode($0, document: node.document) }
+        return nodeSet.nodes.compactMap { XPathResultNode($0, document: node.document) }
     }
 
     struct ParseError: Error {

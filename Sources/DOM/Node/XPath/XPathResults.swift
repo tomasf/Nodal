@@ -29,11 +29,14 @@ public enum XPathResultNode {
     case node (Node)
     case attribute (Attribute)
 
-    internal init(_ xPathNode: pugi.xpath_node, document: Document) {
+    internal init?(_ xPathNode: pugi.xpath_node, document: Document) {
         if !xPathNode.node().empty() {
             self = .node(document.object(for: xPathNode.node()))
         } else if !xPathNode.attribute().empty() {
-            self = .attribute(.init(xPathNode, document: document))
+            guard let attr = Attribute(xPathNode, document: document) else {
+                return nil
+            }
+            self = .attribute(attr)
         } else {
             self = .null
         }
@@ -45,7 +48,8 @@ public extension XPathResultNode {
         private let node: pugi.xpath_node
         private let document: Document
 
-        internal init(_ node: pugi.xpath_node, document: Document) {
+        internal init?(_ node: pugi.xpath_node, document: Document) {
+            guard node.parent().type() == pugi.node_element else { return nil }
             self.node = node
             self.document = document
         }

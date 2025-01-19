@@ -18,7 +18,11 @@ public class Node {
         return owningDocument
     }
 
-    public func xmlData(encoding: String.Encoding = .utf8, options: OutputOptions = .default, indentation: String = .fourSpaces) -> Data {
+    public func xmlData(
+        encoding: String.Encoding = .utf8,
+        options: OutputOptions = .default,
+        indentation: String = .fourSpaces
+    ) throws -> Data {
         var data = Data()
         xml_node_print_with_block(node, indentation, options.rawValue, encoding.pugiEncoding, 0) { rawPointer, length in
             guard let rawPointer else { return }
@@ -27,8 +31,8 @@ public class Node {
         return data
     }
 
-    public func xmlString(options: OutputOptions = .default, indentation: String = .fourSpaces) -> String {
-        String(data: xmlData(encoding: .utf8, options: options, indentation: indentation), encoding: .utf8) ?? ""
+    public func xmlString(options: OutputOptions = .default, indentation: String = .fourSpaces) throws -> String {
+        String(data: try xmlData(encoding: .utf8, options: options, indentation: indentation), encoding: .utf8) ?? ""
     }
 }
 
@@ -39,6 +43,10 @@ internal extension Node {
 
     func traverse(_ function: @escaping (pugi.xml_node, Int) -> Bool) {
         xml_node_walk_block(&node) { function($0, Int($1)) }
+    }
+
+    var nodePointer: OpaquePointer {
+        node.internal_object()
     }
 }
 
@@ -116,12 +124,13 @@ public extension Node {
 extension Node: CustomDebugStringConvertible {
     public var debugDescription: String {
         switch kind {
-        case .element: "Element <\(name)>"
+        case .element: "Element <\(name)...>"
         case .text: "Text \"(\(value))\""
         case .cdata: "CDATA \"(\(value))\""
         case .comment: "Comment <!--\(value)-->"
         case .doctype: "<!DOCTYPE \(value)>"
         case .processingInstruction: "PI <?\(name) \(value)?>"
+        case .declaration: "Declaration <?\(name)...?>"
         case .document: "Document"
         }
     }

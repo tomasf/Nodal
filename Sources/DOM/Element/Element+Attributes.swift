@@ -1,16 +1,28 @@
 import Foundation
 import pugixml
 
+internal extension Element {
+    var hasNamespaceDeclarations: Bool {
+        nodeAttributes.contains(where: { String(cString: $0.name()).hasPrefix("xmlns") })
+    }
+
+    func declaredNamespacesDidChange() {
+        invalidateNamespaceCache()
+        let namespaces = declaredNamespaces
+        for (element, record) in document.pendingNameRecords(forDescendantsOf: self) {
+            if record.attemptResolution(for: element, with: namespaces) {
+                document.removePendingRecord(for: element)
+            }
+        }
+    }
+}
+
 public extension Element {
     func removeAllAttributes() {
         node.remove_attributes()
     }
 
-    private var hasNamespaceDeclarations: Bool {
-        nodeAttributes.contains(where: { String(cString: $0.name()).hasPrefix("xmlns") })
-    }
-
-    var qualifiedAttributes: [(name: String, value: String)] {
+    var attributes: [(name: String, value: String)] {
         get {
             return nodeAttributes.map {(
                 String(cString: $0.name()),
@@ -28,7 +40,7 @@ public extension Element {
                 }
             }
             if didTouchNamespaces {
-                invalidateNamespaceCache()
+                declaredNamespacesDidChange()
             }
         }
     }
@@ -53,7 +65,7 @@ public extension Element {
                 }
             }
             if name.hasPrefix("xmlns") {
-                invalidateNamespaceCache()
+                declaredNamespacesDidChange()
             }
         }
     }

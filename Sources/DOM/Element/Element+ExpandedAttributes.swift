@@ -6,7 +6,7 @@ public extension Element {
         get {
             let namespaces = namespacesInScope
             return nodeAttributes.map {(
-                ExpandedName(qualifiedAttributeName: String(cString: $0.name()), using: namespaces),
+                ExpandedName(effectiveQualifiedAttributeName: String(cString: $0.name()), in: self, using: namespaces),
                 String(cString: $0.value())
             )}
         }
@@ -14,31 +14,34 @@ public extension Element {
             let namespaces = namespacesInScope
             node.remove_attributes()
             for (name, value) in newValue {
-                guard let qName = name.qualifiedAttributeName(using: namespaces) else {
-                    fatalError("Undeclared namespace \(name.namespaceName ?? "")")
-                }
+                let qName = name.effectiveQualifiedAttributeName(for: self, using: namespaces)
                 var attr = node.append_attribute(qName)
                 attr.set_value(value)
             }
         }
     }
 
-    var attributes: [ExpandedName: String] {
+    var namespacedAttributes: [ExpandedName: String] {
         get { Dictionary(orderedAttributes) { $1 } }
         set { orderedAttributes = newValue.map { ($0, $1) } }
     }
 
     subscript(attribute name: ExpandedName) -> String? {
         get {
-            // Trying to retrieve with an unknown namespace is fine
-            guard let qName = name.qualifiedAttributeName(using: namespacesInScope) else { return nil }
+            let qName: String
+            if let match = name.qualifiedAttributeName(using: namespacesInScope) {
+                qName = match
+            } else if let placeholder = pendingNameRecord?.attributes[name] {
+                // Namespace not in scope; try pending placeholder
+                qName = placeholder
+            } else {
+                return nil
+            }
+
             return self[attribute: qName]
         }
         set {
-            // Setting with one is not.
-            guard let qName = name.qualifiedAttributeName(using: namespacesInScope) else {
-                fatalError("Undeclared namespace \(name.namespaceName ?? "")")
-            }
+            let qName = name.effectiveQualifiedAttributeName(for: self, using: namespacesInScope)
             self[attribute: qName] = newValue
         }
     }

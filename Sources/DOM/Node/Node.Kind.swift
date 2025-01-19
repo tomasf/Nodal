@@ -13,7 +13,7 @@ public extension Node {
         case cdata
         case comment
         case processingInstruction
-        //case declaration
+        case declaration
         case doctype
 
         internal init(_ pugiType: pugi.xml_node_type) {
@@ -24,7 +24,7 @@ public extension Node {
             case pugi.node_cdata: .cdata
             case pugi.node_comment: .comment
             case pugi.node_pi: .processingInstruction
-            //case pugi.node_declaration: .declaration
+            case pugi.node_declaration: .declaration
             case pugi.node_doctype: .doctype
             case pugi.node_null: preconditionFailure("Null nodes should never become objects")
             default: preconditionFailure("Unknown node type")
@@ -39,7 +39,7 @@ public extension Node {
             case .cdata: pugi.node_cdata
             case .comment: pugi.node_comment
             case .processingInstruction: pugi.node_pi
-            //case .declaration: pugi.node_declaration
+            case .declaration: pugi.node_declaration
             case .doctype: pugi.node_doctype
             }
         }

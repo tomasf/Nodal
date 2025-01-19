@@ -1,11 +1,24 @@
 import Foundation
 import pugixml
 
+internal extension Element {
+    var pendingNameRecord: PendingNameRecord? {
+        document.pendingNameRecord(for: self)
+    }
+
+    func requirePendingNameRecord() -> PendingNameRecord {
+        if let record = pendingNameRecord {
+            return record
+        }
+        return document.addPendingNameRecord(for: self)
+    }
+}
+
 public extension Element {
     // Namespaces declared as attributes on this element
     var declaredNamespaces: [String?: String] {
         get {
-            Dictionary(qualifiedAttributes.compactMap {
+            Dictionary(attributes.compactMap {
                 if $0.name == "xmlns" {
                     return (nil, $0.value)
                 } else if $0.name.hasPrefix("xmlns:") {
@@ -16,18 +29,18 @@ public extension Element {
             }, uniquingKeysWith: { $1 })
         }
         set {
-            var attributes = qualifiedAttributes
+            var attributes = attributes
             attributes.removeAll(where: { $0.name == "xmlns" || $0.name.hasPrefix("xmlns:") })
             attributes.append(contentsOf: newValue.map { prefix, uri in
                 let attributeName = if let prefix { "xmlns:" + prefix } else { "xmlns" }
                 return (attributeName, uri)
             })
-            self.qualifiedAttributes = attributes
+            self.attributes = attributes
         }
     }
 
     // Declare a namespace URI for a given prefix. Pass nil for prefix to declare a default namespace.
-    func declareNamespace(_ uri: String, for prefix: String?) {
+    func declareNamespace(_ uri: String, forPrefix prefix: String?) {
         let attributeName = if let prefix { "xmlns:" + prefix } else { "xmlns" }
         self[attribute: attributeName] = uri
     }
@@ -53,7 +66,7 @@ public extension Element {
         return namespaces
     }
 
-    var namespacesInScope: [String?: String] {
+    var namespacesInScope: NamespaceBindings {
         if let cachedNamespacesInScope {
             return cachedNamespacesInScope
         }
@@ -84,7 +97,19 @@ public extension Element {
     }
 
     var expandedName: ExpandedName {
-        get { ExpandedName(namespaceName: namespaceURI, localName: localName) }
-        set { name = newValue.qualifiedElementName(using: namespacesInScope) }
+        get {
+            if PendingNameRecord.qualifiedNameIndicatesPending(name), let record = pendingNameRecord, let name = record.elementName {
+                return name
+            } else {
+                return ExpandedName(namespaceName: namespaceURI, localName: localName)
+            }
+        }
+        set {
+            name = newValue.effectiveQualifiedElementName(for: self, using: namespacesInScope)
+        }
+    }
+
+    var undeclaredNamespaceNames: Set<String> {
+        Set(document.pendingNameRecords(forDescendantsOf: self).flatMap(\.1.namespaceNames))
     }
 }

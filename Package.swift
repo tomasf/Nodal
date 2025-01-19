@@ -24,7 +24,7 @@ let package = Package(
             dependencies: ["pugixml", "Bridge"],
             swiftSettings: [.interoperabilityMode(.Cxx)]
         ),
-        .executableTarget(name: "Test", dependencies: ["DOM"], swiftSettings: [.interoperabilityMode(.Cxx)])
+        .testTarget(name: "Tests", dependencies: ["DOM"], swiftSettings: [.interoperabilityMode(.Cxx)])
     ],
     cxxLanguageStandard: .cxx17
 )

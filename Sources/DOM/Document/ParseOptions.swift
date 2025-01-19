@@ -17,6 +17,7 @@ public extension Document.ParseOptions {
     static let includeProcessingInstructions = Self(rawValue: pugi.parse_pi)
     static let includeComments = Self(rawValue: pugi.parse_comments)
     static let includeCDATA = Self(rawValue: pugi.parse_cdata)
+    static let includeDeclaration = Self(rawValue: pugi.parse_declaration)
 
     static let includeWhitespaceText = Self(rawValue: pugi.parse_ws_pcdata)
     static let includeSingleWhitespaceText = Self(rawValue: pugi.parse_ws_pcdata_single)
