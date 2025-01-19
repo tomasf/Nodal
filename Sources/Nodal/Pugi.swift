@@ -6,6 +6,10 @@ extension pugi.xml_node: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(internal_object())
     }
+
+    var nonNull: pugi.xml_node? {
+        empty() ? nil : self
+    }
 }
 
 internal extension pugi.xml_document {

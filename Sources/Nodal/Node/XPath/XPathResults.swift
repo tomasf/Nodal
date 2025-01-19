@@ -24,50 +24,34 @@ public extension XPathQuery {
     }
 }
 
-public enum XPathResultNode {
-    case null
-    case node (Node)
-    case attribute (Attribute)
+public struct XPathResultNode: CustomDebugStringConvertible {
+    private let xPathNode: pugi.xpath_node
+    private let document: Document
 
-    internal init?(_ xPathNode: pugi.xpath_node, document: Document) {
-        if !xPathNode.node().empty() {
-            self = .node(document.object(for: xPathNode.node()))
-        } else if !xPathNode.attribute().empty() {
-            guard let attr = Attribute(xPathNode, document: document) else {
-                return nil
-            }
-            self = .attribute(attr)
+    internal init(xPathNode: pugi.xpath_node, document: Document) {
+        self.xPathNode = xPathNode
+        self.document = document
+    }
+
+    public var debugDescription: String {
+        if let attributeName, let node {
+            "Attribute '\(attributeName)' in node '\(node)'"
+        } else if let node {
+            "Node '\(node)'"
         } else {
-            self = .null
+            "Null"
         }
     }
-}
 
-public extension XPathResultNode {
-    struct Attribute {
-        private let node: pugi.xpath_node
-        private let document: Document
-
-        internal init?(_ node: pugi.xpath_node, document: Document) {
-            guard node.parent().type() == pugi.node_element else { return nil }
-            self.node = node
-            self.document = document
+    var node: Node? {
+        if let node = xPathNode.node().nonNull ?? xPathNode.parent().nonNull {
+            document.object(for: node)
+        } else {
+            nil
         }
+    }
 
-        public var name: String {
-            String(cString: node.attribute().name())
-        }
-
-        public var value: String {
-            String(cString: node.attribute().value())
-        }
-
-        public var parent: Element {
-            document.element(for: node.parent())
-        }
-
-        public var expandedName: ExpandedName {
-            ExpandedName(qualifiedAttributeName: name, using: parent.namespacesInScope)
-        }
+    var attributeName: String? {
+        xPathNode.attribute().empty() ? nil : String(cString: xPathNode.attribute().name())
     }
 }
