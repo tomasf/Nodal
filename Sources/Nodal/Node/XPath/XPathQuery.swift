@@ -25,23 +25,23 @@ public class XPathQuery {
 }
 
 public extension XPathQuery {
-    func evaluate(with node: Node) -> String {
+    func stringValue(with node: Node) -> String {
         String(query.evaluate_string(.init(node.node)))
     }
 
-    func evaluate(with node: Node) -> Double {
+    func doubleValue(with node: Node) -> Double {
         query.evaluate_number(.init(node.node))
     }
 
-    func evaluate(with node: Node) -> Int {
-        Int(evaluate(with: node) as Double)
+    func intValue(with node: Node) -> Int {
+        Int(doubleValue(with: node))
     }
 
-    func evaluate(with node: Node) -> Bool {
+    func boolValue(with node: Node) -> Bool {
         query.evaluate_boolean(.init(node.node))
     }
 
-    func evaluate(with node: Node) -> [XPathResultNode] {
+    func nodes(with node: Node) -> [XPathResultNode] {
         let nodeSet = query.evaluate_node_set(.init(node.node))
         return nodeSet.nodes.compactMap { XPathResultNode($0, document: node.document) }
     }

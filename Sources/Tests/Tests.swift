@@ -1,4 +1,4 @@
-@testable import DOM
+@testable import Nodal
 import Testing
 
 struct Tests {

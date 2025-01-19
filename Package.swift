@@ -3,9 +3,9 @@
 import PackageDescription
 
 let package = Package(
-    name: "DOM",
+    name: "Nodal",
     products: [
-        .library(name: "DOM", targets: ["DOM"]),
+        .library(name: "Nodal", targets: ["Nodal"]),
     ],
     targets: [
         .target(
@@ -20,11 +20,11 @@ let package = Package(
             path: "Sources/bridge"
         ),
         .target(
-            name: "DOM",
+            name: "Nodal",
             dependencies: ["pugixml", "Bridge"],
             swiftSettings: [.interoperabilityMode(.Cxx)]
         ),
-        .testTarget(name: "Tests", dependencies: ["DOM"], swiftSettings: [.interoperabilityMode(.Cxx)])
+        .testTarget(name: "Tests", dependencies: ["Nodal"], swiftSettings: [.interoperabilityMode(.Cxx)])
     ],
     cxxLanguageStandard: .cxx17
 )

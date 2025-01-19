@@ -124,7 +124,7 @@ public extension Node {
 extension Node: CustomDebugStringConvertible {
     public var debugDescription: String {
         switch kind {
-        case .element: "Element <\(name)...>"
+        case .element: "Element <\(name)>"
         case .text: "Text \"(\(value))\""
         case .cdata: "CDATA \"(\(value))\""
         case .comment: "Comment <!--\(value)-->"
