@@ -5,14 +5,14 @@ public extension Document {
     /// Creates an XML document by parsing the given XML string.
     ///
     /// - Parameters:
-    ///   - xmlString: A string containing the XML content to parse.
+    ///   - string: A string containing the XML content to parse.
     ///   - options: The parsing options to use. Defaults to `.default`.
     /// - Throws: `ParseError` if the parsing fails due to malformed XML or other issues.
     ///
     /// - Note: This initializer parses the entire string and builds the corresponding document tree.
-    convenience init(xmlString: String, options: ParseOptions = .default) throws(ParseError) {
+    convenience init(string: String, options: ParseOptions = .default) throws(ParseError) {
         self.init()
-        let result = pugiDocument.load_string(xmlString, options.rawValue)
+        let result = pugiDocument.load_string(string, options.rawValue)
         if result.status != pugi.status_ok {
             throw ParseError(result)
         }
@@ -27,7 +27,7 @@ public extension Document {
     /// - Throws: `ParseError` if the parsing fails due to malformed XML or other issues.
     ///
     /// - Note: This initializer parses the data and builds the corresponding document tree.
-    convenience init(xmlData data: Data, encoding: String.Encoding? = nil, options: ParseOptions = .default) throws(ParseError) {
+    convenience init(data: Data, encoding: String.Encoding? = nil, options: ParseOptions = .default) throws(ParseError) {
         self.init()
         let result = data.withUnsafeBytes { bufferPointer in
             pugiDocument.load_buffer(bufferPointer.baseAddress, bufferPointer.count, options.rawValue, encoding?.pugiEncoding ?? pugi.encoding_auto)
