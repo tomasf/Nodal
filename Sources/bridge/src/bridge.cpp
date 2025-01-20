@@ -1,10 +1,10 @@
 #include "bridge.hpp"
 
-bridge_writer::bridge_writer(void (^block)(const void*, size_t)) : write_block(Block_copy(block)) {}
+bridge_writer::bridge_writer(void (^block)(const void*, size_t)) : write_block(block) {}
 
 bridge_writer::~bridge_writer() {
     if (write_block) {
-        Block_release(write_block);
+        //Block_release(write_block);
     }
 }
 
@@ -44,11 +44,11 @@ pugi::xml_node xml_document_as_node(const pugi::xml_document& document) {
 }
 
 
-bridge_walker::bridge_walker(bool (^block)(const pugi::xml_node& node, int depth)) : foreach_block(Block_copy(block)) {}
+bridge_walker::bridge_walker(bool (^block)(const pugi::xml_node& node, int depth)) : foreach_block(block) {}
 
 bridge_walker::~bridge_walker() {
     if (foreach_block) {
-        Block_release(foreach_block);
+        //Block_release(foreach_block);
     }
 }
 
