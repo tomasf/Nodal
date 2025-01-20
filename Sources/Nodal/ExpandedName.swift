@@ -1,9 +1,24 @@
 import Foundation
 
+/// Represents an expanded name consisting of a namespace URI and a local name.
+///
+/// An `ExpandedName` is used to uniquely identify XML names, including attributes and elements, by combining:
+/// - `namespaceName`: The namespace URI to which the name belongs (optional).
+/// - `localName`: The local part of the name.
+///
+/// This provides a clear separation between names in different namespaces, even when their local parts are identical.
 public struct ExpandedName: Hashable, Sendable {
+    /// The namespace URI to which the name belongs, or `nil` if there is no namespace.
     public let namespaceName: String?
+
+    /// The local part of the name.
     public let localName: String
 
+    /// Creates a new expanded name with the specified namespace and local name.
+    ///
+    /// - Parameters:
+    ///   - uri: The namespace URI of the name. Pass `nil` if the name does not belong to a namespace.
+    ///   - localName: The local part of the name.
     public init(namespaceName uri: String?, localName: String) {
         self.namespaceName = uri
         self.localName = localName
@@ -87,25 +102,5 @@ internal extension ExpandedName {
             return element.requirePendingNameRecord().addUnresolvedAttribute(self, in: element)
         }
         return String(prefix: prefix, localPart: localName)
-    }
-
-}
-
-public typealias NamespaceBindings = [String?: String]
-
-internal extension NamespaceBindings {
-    func elementPrefix(for namespaceName: String) -> String?? {
-        if self[nil] == namespaceName {
-            return nil as String?
-        }
-        return first(where: { $0.value == namespaceName })?.key
-    }
-
-    func attributePrefix(for namespaceName: String) -> String? {
-        first(where: { $0.key != nil && $0.value == namespaceName })?.key
-    }
-
-    var nameToPrefixMapping: [String: String?] {
-        [String: String?](map { ($1, $0) })  { $0 == nil || $1 == nil ? nil as String? : $0 }
     }
 }

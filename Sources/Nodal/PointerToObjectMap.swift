@@ -27,6 +27,10 @@ internal class PointerToObjectMap<ObjectType: AnyObject> {
         }
     }
 
+    func removeObjects<S: Sequence>(forKeys keys: S) where S.Element == OpaquePointer {
+        for key in keys { self[key] = nil }
+    }
+
     var contents: [(key: OpaquePointer, value: ObjectType)] {
         var enumerator = NSEnumerateMapTable(table)
         var contents: [(OpaquePointer, ObjectType)] = []

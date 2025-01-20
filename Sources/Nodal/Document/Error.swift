@@ -2,9 +2,15 @@ import Foundation
 import pugixml
 
 public extension Document {
+    /// Represents an error that occurs during the parsing of an XML document.
     struct ParseError: Error {
+        /// The reason for the parse failure.
         public let reason: Reason
+
+        /// The character offset in the input where the error occurred.
         public let offset: Int
+
+        /// The string encoding of the input that was being parsed.
         public let encoding: String.Encoding
 
         internal init(_ result: pugi.xml_parse_result) {
@@ -13,23 +19,57 @@ public extension Document {
             self.encoding = .init(result.encoding)
         }
 
+        /// Represents the specific reason for a parse failure.
         public enum Reason: Sendable {
+            /// The file was not found during parsing.
             case fileNotFound
+
+            /// An I/O error occurred while reading the file or stream.
             case ioError
+
+            /// Memory allocation failed during parsing.
             case outOfMemory
+
+            /// An internal parser error occurred.
             case internalError
+
+            /// The parser encountered an unrecognized tag.
             case unrecognizedTag
+
+            /// A processing instruction or document declaration was malformed.
             case badProcessingInstruction
+
+            /// A comment was malformed.
             case badComment
+
+            /// A CDATA section was malformed.
             case badCData
+
+            /// A document type declaration was malformed.
             case badDoctype
+
+            /// A PCDATA section was malformed.
             case badPCDATA
+
+            /// A start element tag was malformed.
             case badStartElement
+
+            /// An attribute was malformed.
             case badAttribute
+
+            /// An end element tag was malformed.
             case badEndElement
+
+            /// A mismatch occurred between a start tag and an end tag.
             case endElementMismatch
+
+            /// An attempt was made to append nodes to an invalid root type.
             case appendInvalidRoot
+
+            /// The document lacks any element nodes.
             case noDocumentElement
+
+            /// An unknown error occurred.
             case unknown
 
             internal init(_ pugiStatus: pugi.xml_parse_status) {
@@ -57,6 +97,28 @@ public extension Document {
     }
 
     enum OutputError: Error {
+        /// One or more namespaces were referenced but not declared.
+        ///
+        /// - Parameter undeclaredNamespaces: A set of undeclared namespace names that caused the error.
+        ///
+        /// - Discussion:
+        ///   To resolve this error, ensure that all referenced namespaces are declared within the document.
+        ///   Namespaces can be declared using the `declareNamespace(_:forPrefix:)` method on an `Element`.
+        ///
+        ///   ### Declaring a Namespace
+        ///   - To declare a namespace with a prefix:
+        ///     ```swift
+        ///     let root = document.makeDocumentElement(name: "root")
+        ///     root.declareNamespace("http://example.com/namespace", forPrefix: "ex")
+        ///     ```
+        ///
+        ///   - To declare a default namespace (without a prefix):
+        ///     ```swift
+        ///     root.declareNamespace("http://example.com/default", forPrefix: nil)
+        ///     ```
+        ///
+        ///   ### Important Notes
+        ///   - Attributes can not be part of a default namespace. They must always belong to a namespace with an explicit prefix, or no namespace at all.
         case undeclaredNamespaces (Set<String>)
     }
 }

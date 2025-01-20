@@ -2,6 +2,11 @@ import Foundation
 import pugixml
 import Bridge
 
+/// Represents a node in an XML document.
+///
+/// - Note: This class is the base for all types of XML nodes, including elements, text, comments, and more.
+///         It provides common functionality for working with nodes, such as retrieving their name, value, and
+///         serialized XML representation.
 public class Node {
     private let owningDocument: Document?
     internal var node: pugi.xml_node
@@ -11,6 +16,13 @@ public class Node {
         self.node = node
     }
 
+    internal func invalidate() {
+        node = .init()
+    }
+
+    /// The document that owns this node.
+    ///
+    /// - Returns: The `Document` that this node belongs to.
     public var document: Document {
         guard let owningDocument else {
             fatalError("owningDocument should only be nil for Document, which overrides this property")
@@ -18,6 +30,13 @@ public class Node {
         return owningDocument
     }
 
+    /// Serializes the node and its children into a `Data` object.
+    ///
+    /// - Parameters:
+    ///   - encoding: The string encoding to use for the output. Defaults to `.utf8`.
+    ///   - options: The options for XML output formatting. Defaults to `.default`.
+    ///   - indentation: The string to use for indentation in the XML output. Defaults to `.fourSpaces`.
+    /// - Returns: A `Data` object containing the serialized XML representation of the node.
     public func xmlData(
         encoding: String.Encoding = .utf8,
         options: OutputOptions = .default,
@@ -31,22 +50,14 @@ public class Node {
         return data
     }
 
+    /// Serializes the node and its children into a string.
+    ///
+    /// - Parameters:
+    ///   - options: The options for XML output formatting. Defaults to `.default`.
+    ///   - indentation: The string to use for indentation in the XML output. Defaults to `.fourSpaces`.
+    /// - Returns: A string containing the serialized XML representation of the node.
     public func xmlString(options: OutputOptions = .default, indentation: String = .fourSpaces) throws -> String {
         String(data: try xmlData(encoding: .utf8, options: options, indentation: indentation), encoding: .utf8) ?? ""
-    }
-}
-
-internal extension Node {
-    func childNodes(ofType targetType: pugi.xml_node_type = pugi.node_null) -> [pugi.xml_node] {
-        childNodes.filter { targetType == pugi.node_null || $0.type() == targetType }
-    }
-
-    func traverse(_ function: @escaping (pugi.xml_node, Int) -> Bool) {
-        xml_node_walk_block(&node) { function($0, Int($1)) }
-    }
-
-    var nodePointer: OpaquePointer {
-        node.internal_object()
     }
 }
 
@@ -57,10 +68,13 @@ extension Node: Equatable {
 }
 
 public extension Node {
-    // The name of the node. For elements, this is the qualified name, i.e. a local name
-    // with or without a namespace prefix. For processing instructions, the name represents
-    // the target. For other kinds of nodes, name is nil.
-    // See also: `Element.expandedName`
+    /// The name of the node.
+    ///
+    /// - For elements, this is the qualified name, including a local name and an optional namespace prefix.
+    /// - For processing instructions, the name represents the target.
+    /// - For other kinds of nodes, the name is an empty string.
+    ///
+    /// - Note: For an expanded name (including namespace name), see `Element.expandedName`.
     var name: String {
         get {
             String(cString: node.name()) // documented to never return null
@@ -70,8 +84,10 @@ public extension Node {
         }
     }
 
-    // The value of the node. This is available for text, CDATA, comments,
-    // DOCTYPEs and processing instructions. For other kinds of nodes, value is nil.
+    /// The value of the node.
+    ///
+    /// - For text, CDATA, comments, DOCTYPEs, and processing instructions, this contains their respective values.
+    /// - For other kinds of nodes, the value is an empty string.
     var value: String {
         get {
             String(cString: node.value()) // documented to never return null
@@ -80,44 +96,11 @@ public extension Node {
             node.set_value(newValue)
         }
     }
+}
 
-    var children: [Node] {
-        childNodes().map { document.object(for: $0) }
-    }
-
-    func children(ofKind kind: Kind) -> [Node] {
-        childNodes(ofType: kind.pugiType).map {
-            document.object(for: $0)
-        }
-    }
-
-    var parent: Node? {
-        let parentNode = node.parent()
-        return parentNode.empty() ? nil : document.object(for: parentNode)
-    }
-
-    func removeChild(_ child: Node) {
-        node.remove_child(child.node)
-    }
-
-    func removeAllChildren() {
-        node.remove_children()
-    }
-
-    // Traverse the entire tree within this node. Return true from the function to continue; false to stop
-    func traverseTree(_ function: @escaping (Node, _ level: Int) -> Bool) {
-        traverse { function(self.document.object(for: $0), $1) }
-    }
-
-    func isDescendant(of ancestor: Node) -> Bool {
-        var node = self.node
-        while !node.empty() {
-            if node == ancestor.node {
-                return true
-            }
-            node = node.parent()
-        }
-        return false
+internal extension Node {
+    var nodePointer: OpaquePointer {
+        node.internal_object()
     }
 }
 
@@ -135,5 +118,3 @@ extension Node: CustomDebugStringConvertible {
         }
     }
 }
-
-

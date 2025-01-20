@@ -21,6 +21,25 @@ internal extension Document {
         return new
     }
 
+    func invalidateElementObject(_ element: Element) {
+        objectDirectory[element.nodePointer] = nil
+        element.invalidate()
+    }
+
+    func invalidateElementObjects(withinTree ancestor: Element, excludingTarget: Bool = false) {
+        ancestor.traverse { pugiNode, _ in
+            if pugiNode.type() == pugi.node_element {
+                self.existingElementObject(forNode: pugiNode)?.invalidate()
+                self.objectDirectory[pugiNode.internal_object()] = nil
+            }
+            return true
+        }
+        if !excludingTarget {
+            objectDirectory[ancestor.nodePointer] = nil
+            ancestor.invalidate()
+        }
+    }
+
     // Get an Element object for an element node
     // This returns an existing object if one exists; otherwise creates one
     func element(for node: pugi.xml_node) -> Element {
@@ -39,5 +58,9 @@ internal extension Document {
         } else {
             return Node(owningDocument: self, node: node)
         }
+    }
+
+    func objectIfValid(_ node: pugi.xml_node) -> Node? {
+        node.empty() ? nil : object(for: node)
     }
 }

@@ -3,7 +3,7 @@ import Testing
 
 struct Tests {
     @Test
-    func testNamespaces() {
+    func namespaceResolution() {
         let document = Document()
         let root = document.makeDocumentElement(name: "root")
 
@@ -21,12 +21,12 @@ struct Tests {
         #expect(a.name == "y:a")
         #expect(document.pendingNameRecordCount == 0)
 
-        a[attribute: "b", uri: "namespace2"] = "foo"
+        a[attribute: "b", namespaceName: "namespace2"] = "foo"
         #expect(document.pendingNameRecordCount == 0)
         #expect(a[attribute: "__pending:b"] == nil)
         #expect(a[attribute: "x:b"] == "foo")
 
-        a[attribute: "c", uri: "namespace3"] = "bar"
+        a[attribute: "c", namespaceName: "namespace3"] = "bar"
         #expect(document.pendingNameRecordCount == 1)
 
         #expect(a[attribute: "__pending:c"] == "bar")
@@ -38,16 +38,22 @@ struct Tests {
         #expect(a[attribute: "aa:c"] == "bar")
     }
 
+    // addChild should return nil if the type of node can't be added to that parent
     @Test
-    func testDeclaration() throws {
-        let document = try Document(xmlString: """
-<?xml version="1.0" encoding="utf-8" a="b"?>
-<foo a="d"><bar></bar></foo>
-""", options: .includeDeclaration)
+    func addChild() throws {
+        let document = Document()
+        let a = document.addChild(ofKind: .element)
+        #expect(a != nil)
+        guard let a else { return }
 
-        print("XML: ", try document.xmlString())
-        print("Children: ", document.children)
-        let query = try XPathQuery("//@a")
-        print("Query items: ", query.evaluate(with: document) as [XPathResultNode])
+        let innerDoc = a.addChild(ofKind: .document)
+        #expect(innerDoc == nil)
+
+        let innerDecl = a.addChild(ofKind: .declaration)
+        #expect(innerDecl == nil)
+
+        #expect(a.addChild(ofKind: .comment) != nil)
+        #expect(document.addChild(ofKind: .comment) != nil)
+
     }
 }

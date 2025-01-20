@@ -2,19 +2,51 @@ import Foundation
 import pugixml
 
 public extension Node {
+    /// The type of the node, represented as a `Kind` enum value.
     var kind: Kind {
         Kind(node.type())
     }
 
+    /// Represents the types of XML nodes.
     enum Kind {
+        /// The root of an XML document.
         case document
+
+        /// An XML element node.
+        ///
+        /// - Serialized form: `<elementName ...>...</elementName>` or `<elementName.../>`
         case element
+
+        /// A text node containing plain character data.
+        ///
+        /// - Serialized form: text content
         case text
+
+        /// A CDATA section node.
+        ///
+        /// - Serialized form: `<![CDATA[some text]]>`
         case cdata
+
+        /// A comment node.
+        ///
+        /// - Serialized form: `<!-- comment -->`
         case comment
+
+        /// A processing instruction node.
+        ///
+        /// - Serialized form: `<?target data?>`
         case processingInstruction
+
+        /// An XML declaration node.
+        ///
+        /// - Serialized form: `<?xml version="1.0"?>`
         case declaration
+
+        /// A DOCTYPE declaration node.
+        ///
+        /// - Serialized form: `<!DOCTYPE rootElement SYSTEM "url">`
         case doctype
+
 
         internal init(_ pugiType: pugi.xml_node_type) {
             self = switch pugiType {

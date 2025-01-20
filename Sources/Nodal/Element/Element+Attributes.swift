@@ -11,17 +11,25 @@ internal extension Element {
         let namespaces = declaredNamespaces
         for (element, record) in document.pendingNameRecords(forDescendantsOf: self) {
             if record.attemptResolution(for: element, with: namespaces) {
-                document.removePendingRecord(for: element)
+                document.removePendingNameRecord(for: element)
             }
         }
     }
 }
 
 public extension Element {
+    /// Removes all attributes from the element.
+    ///
+    /// - Note: This method clears all attributes associated with the element, including namespace declarations.
     func removeAllAttributes() {
         node.remove_attributes()
     }
 
+    /// The attributes of the element, represented as an array of name-value pairs.
+    ///
+    /// - Returns: An array of tuples where each tuple contains the qualified name of an attribute and its corresponding value.
+    ///
+    /// - Note: Setting new attributes replaces all existing attributes. Qualified names, such as those with prefixes, are handled directly when specified.
     var attributes: [(name: String, value: String)] {
         get {
             return nodeAttributes.map {(
@@ -45,6 +53,18 @@ public extension Element {
         }
     }
 
+    /// Accesses the value of a specific attribute by its qualified name.
+    ///
+    /// - Parameter name: The qualified name of the attribute to access.
+    /// - Returns: The value of the attribute if it exists, or `nil` if the attribute is not present.
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let element = ...
+    ///   element["id"] = "12345" // Sets the "id" attribute
+    ///   let idValue = element["id"] // Retrieves the value of the "id" attribute
+    ///   element["class"] = nil // Removes the "class" attribute
+    ///   ```
     subscript(attribute name: String) -> String? {
         get {
             let attribute = node.attribute(name)

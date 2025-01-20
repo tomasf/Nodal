@@ -12,11 +12,49 @@ internal extension Element {
         }
         return document.addPendingNameRecord(for: self)
     }
+
+    static let fixedNamespaces: NamespaceBindings = [
+        "xml": "http://www.w3.org/XML/1998/namespace",
+        "xmlns": "http://www.w3.org/2000/xmlns/"
+    ]
+
+    var explicitNamespacesInScope: NamespaceBindings {
+        var namespaces = parentElement?.explicitNamespacesInScope ?? [:]
+
+        for pugiAttribute in nodeAttributes {
+            let name = String(cString: pugiAttribute.name())
+            if name == "xmlns" {
+                namespaces[nil] = String(cString: pugiAttribute.value())
+            } else if name.hasPrefix("xmlns:") {
+                let prefix = String(name.dropFirst(6))
+                namespaces[prefix] = String(cString: pugiAttribute.value())
+            }
+        }
+
+        return namespaces
+    }
 }
 
 public extension Element {
-    // Namespaces declared as attributes on this element
-    var declaredNamespaces: [String?: String] {
+    /// Declares a namespace URI for a given prefix on this element.
+    ///
+    /// - Parameters:
+    ///   - uri: The namespace name (URI) to declare.
+    ///   - prefix: The prefix to associate with the namespace. Pass `nil` to declare a default namespace.
+    ///
+    /// - Note: This adds or updates a `xmlns` attribute for the specified prefix.
+    func declareNamespace(_ uri: String, forPrefix prefix: String?) {
+        let attributeName = if let prefix { "xmlns:" + prefix } else { "xmlns" }
+        self[attribute: attributeName] = uri
+    }
+
+    /// The namespaces explicitly declared as attributes on this element.
+    ///
+    /// - Returns: A dictionary where the keys are namespace prefixes (or `nil` for the default namespace),
+    ///            and the values are the corresponding namespace names (URIs).
+    ///
+    /// - Note: Setting this property updates the `xmlns` attributes on the element.
+    var declaredNamespaces: NamespaceBindings {
         get {
             Dictionary(attributes.compactMap {
                 if $0.name == "xmlns" {
@@ -39,33 +77,10 @@ public extension Element {
         }
     }
 
-    // Declare a namespace URI for a given prefix. Pass nil for prefix to declare a default namespace.
-    func declareNamespace(_ uri: String, forPrefix prefix: String?) {
-        let attributeName = if let prefix { "xmlns:" + prefix } else { "xmlns" }
-        self[attribute: attributeName] = uri
-    }
-
-    private static let fixedNamespaces: [String?: String] = [
-        "xml": "http://www.w3.org/XML/1998/namespace",
-        "xmlns": "http://www.w3.org/2000/xmlns/"
-    ]
-
-    internal var explicitNamespacesInScope: [String?: String] {
-        var namespaces = parentElement?.explicitNamespacesInScope ?? [:]
-
-        for pugiAttribute in nodeAttributes {
-            let name = String(cString: pugiAttribute.name())
-            if name == "xmlns" {
-                namespaces[nil] = String(cString: pugiAttribute.value())
-            } else if name.hasPrefix("xmlns:") {
-                let prefix = String(name.dropFirst(6))
-                namespaces[prefix] = String(cString: pugiAttribute.value())
-            }
-        }
-
-        return namespaces
-    }
-
+    /// The namespaces in scope for this element, including explicitly declared and inherited namespaces.
+    ///
+    /// - Returns: A dictionary where the keys are namespace prefixes (or `nil` for the default namespace),
+    ///            and the values are the corresponding namespace names (URIs).
     var namespacesInScope: NamespaceBindings {
         if let cachedNamespacesInScope {
             return cachedNamespacesInScope
@@ -80,28 +95,39 @@ public extension Element {
         return namespaces
     }
 
-    var defaultNamespaceURI: String? {
+    /// The default namespace name (URI) for this element.
+    ///
+    /// - Returns: The URI associated with the default namespace (`xmlns`) in this scope, or `nil` if no default namespace is declared.
+    var defaultNamespaceName: String? {
         namespacesInScope[nil]
     }
 
+    /// The local name of this element's qualified name, excluding any prefix.
     var localName: String {
         name.qNameLocalName
     }
 
+    /// The prefix of this element's qualified name, or `nil` if no prefix is present.
     var prefix: String? {
         name.qNamePrefix
     }
 
-    var namespaceURI: String? {
+    /// The namespace name (URI) associated with this element's prefix.
+    ///
+    /// - Returns: The namespace URI for the prefix, or `nil` if the prefix is not bound to a namespace.
+    var namespaceName: String? {
         namespacesInScope[prefix]
     }
 
+    /// The expanded name of this element, including its namespace name (URI) and local name.
+    ///
+    /// - Returns: An `ExpandedName` containing the local name and namespace name.
     var expandedName: ExpandedName {
         get {
             if PendingNameRecord.qualifiedNameIndicatesPending(name), let record = pendingNameRecord, let name = record.elementName {
                 return name
             } else {
-                return ExpandedName(namespaceName: namespaceURI, localName: localName)
+                return ExpandedName(namespaceName: namespaceName, localName: localName)
             }
         }
         set {
@@ -109,6 +135,9 @@ public extension Element {
         }
     }
 
+    /// The names of namespaces that are referenced in this element or its descendants but have not been declared.
+    ///
+    /// - Returns: A set of undeclared namespace names used within the subtree rooted at this element.
     var undeclaredNamespaceNames: Set<String> {
         Set(document.pendingNameRecords(forDescendantsOf: self).flatMap(\.1.namespaceNames))
     }

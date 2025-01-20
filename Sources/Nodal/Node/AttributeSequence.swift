@@ -1,7 +1,7 @@
 import Foundation
 import pugixml
 
-internal struct NodeAttributes: Sequence, IteratorProtocol {
+internal struct AttributeSequence: Sequence, IteratorProtocol {
     private let target: Node
     private var current: pugi.xml_attribute? = nil
 
@@ -21,7 +21,7 @@ internal struct NodeAttributes: Sequence, IteratorProtocol {
 }
 
 internal extension Node {
-    var nodeAttributes: NodeAttributes {
-        NodeAttributes(target: self)
+    var nodeAttributes: AttributeSequence {
+        AttributeSequence(target: self)
     }
 }
