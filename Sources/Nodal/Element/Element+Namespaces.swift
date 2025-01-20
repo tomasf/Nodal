@@ -19,80 +19,19 @@ internal extension Element {
     ]
 
     var explicitNamespacesInScope: NamespaceBindings {
-        var namespaces: NamespaceBindings = [:]
-        var node: pugi.xml_node = self.node
-        while !node.empty() {
-            var attribute = node.first_attribute()
-            while !attribute.empty() {
-                let name = String(cString: attribute.name())
-                if name.hasPrefix("xmlns") {
-                    let prefix = name == "xmlns" ? nil : name.qNameLocalName
-                    if namespaces[prefix] == nil {
-                        namespaces[prefix] = String(cString: attribute.value())
-                    }
-                }
-                attribute = attribute.next_attribute()
-            }
-            node = node.parent()
-        }
-        return namespaces
+        node.explicitNamespacesInScope
     }
 
     func prefix(for namespaceName: String) -> String? {
-        if namespaceName == "http://www.w3.org/XML/1998/namespace" { return "xml" }
-        if namespaceName == "http://www.w3.org/2000/xmlns/" { return "xmlns" }
-
-        var node: pugi.xml_node = self.node
-        while !node.empty() {
-            var attribute = node.first_attribute()
-            while !attribute.empty() {
-                let name = String(cString: attribute.name())
-                if name.hasPrefix("xmlns"), String(cString: attribute.value()) == namespaceName {
-                    return name.count == 5 ? "" : name.qNameLocalName
-                }
-                attribute = attribute.next_attribute()
-            }
-            node = node.parent()
-        }
-        return nil
+        node.prefix(for: namespaceName)
     }
 
     func nonDefaultPrefix(for namespaceName: String) -> String? {
-        if namespaceName == "http://www.w3.org/XML/1998/namespace" { return "xml" }
-        if namespaceName == "http://www.w3.org/2000/xmlns/" { return "xmlns" }
-
-        var node: pugi.xml_node = self.node
-        while !node.empty() {
-            var attribute = node.first_attribute()
-            while !attribute.empty() {
-                let name = String(cString: attribute.name())
-                if name.hasPrefix("xmlns:"), String(cString: attribute.value()) == namespaceName {
-                    return name.qNameLocalName
-                }
-                attribute = attribute.next_attribute()
-            }
-            node = node.parent()
-        }
-        return nil
+        node.nonDefaultPrefix(for: namespaceName)
     }
 
     func namespaceName(for prefix: String?) -> String? {
-        if prefix == "xml" { return "http://www.w3.org/XML/1998/namespace" }
-        if prefix == "xmlns" { return "http://www.w3.org/2000/xmlns/" }
-
-        let targetAttributeName = if let prefix { "xmlns:" + prefix } else { "xmlns" }
-        var node: pugi.xml_node = self.node
-        while !node.empty() {
-            var attribute = node.first_attribute()
-            while !attribute.empty() {
-                if String(cString: attribute.name()) == targetAttributeName {
-                    return String(cString: attribute.value())
-                }
-                attribute = attribute.next_attribute()
-            }
-            node = node.parent()
-        }
-        return nil
+        node.namespaceName(for: prefix)
     }
 }
 
@@ -179,11 +118,7 @@ public extension Element {
     /// - Returns: An `ExpandedName` containing the local name and namespace name.
     var expandedName: ExpandedName {
         get {
-            if PendingNameRecord.qualifiedNameIndicatesPending(name), let record = pendingNameRecord, let name = record.elementName {
-                return name
-            } else {
-                return ExpandedName(namespaceName: namespaceName, localName: localName)
-            }
+            document.expandedName(for: node)
         }
         set {
             name = newValue.effectiveQualifiedElementName(for: self)

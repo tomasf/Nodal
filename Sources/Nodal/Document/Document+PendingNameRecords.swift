@@ -6,6 +6,20 @@ internal extension Document {
         pendingNamespaceRecords[element.nodePointer]
     }
 
+    func expandedName(for elementNode: pugi.xml_node) -> ExpandedName {
+        let qName = String(cString: elementNode.name())
+        if PendingNameRecord.qualifiedNameIndicatesPending(qName),
+           let record = pendingNamespaceRecords[elementNode.internal_object()],
+           let name = record.elementName {
+            return name
+        }
+
+        return ExpandedName(
+            namespaceName: elementNode.namespaceName(for: qName.qNamePrefix),
+            localName: qName.qNameLocalName
+        )
+    }
+
     func addPendingNameRecord(for element: Element) -> PendingNameRecord {
         let record = PendingNameRecord(element: element)
         pendingNamespaceRecords[element.nodePointer] = record

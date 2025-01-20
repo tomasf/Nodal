@@ -11,7 +11,8 @@ public extension Element {
     ///
     /// - Returns: An array of all child nodes that are elements.
     var elements: [Element] {
-        childNodes(ofType: pugi.node_element).map { document.element(for: $0) }
+        childNodes(ofType: pugi.node_element)
+            .map { document.element(for: $0) }
     }
 
     /// Retrieves the first child element with the specified name.
@@ -46,11 +47,12 @@ public extension Element {
     /// - Parameter targetName: The expanded name (including local name and optional namespace) of the elements to retrieve.
     /// - Returns: An array of child elements matching the expanded name.
     subscript(elements targetName: ExpandedName) -> [Element] {
-        let candidateElements = childNodes.filter { $0.type() == pugi.node_element && String(cString: $0.name()).hasSuffix(targetName.localName) }
-        return candidateElements.compactMap {
-            let element = document.element(for: $0)
-            return element.expandedName == targetName ? element : nil
+        let candidates = childNodes.filter {
+            $0.type() == pugi.node_element && String(cString: $0.name()).hasSuffix(targetName.localName)
         }
+        return candidates.filter {
+            document.expandedName(for: $0) == targetName
+        }.map { document.element(for: $0) }
     }
 
     /// Retrieves all child elements with the specified local name and namespace URI.
@@ -70,8 +72,7 @@ public extension Element {
     subscript(element targetName: ExpandedName) -> Element? {
         let match = childNodes.first(where: {
             guard $0.type() == pugi.node_element && String(cString: $0.name()).hasSuffix(targetName.localName) else { return false }
-            let element = document.element(for: $0)
-            return element.expandedName == targetName
+            return document.expandedName(for: $0) == targetName
         })
         return if let match { document.element(for: match) } else { nil }
     }

@@ -22,6 +22,10 @@ internal extension Document {
     }
 
     static let deletedNodesUserInfoKey = "Nodal.DeletedNodes"
+
+    // Ideally, we'd use the object parameter on NotificationCenter to filter on document,
+    // but swift-corelibs-foundation seems to require that the class inherits from NSObject
+    // for that to work, so we use this as a workaround.
     static let documentUserInfoKey = "Nodal.Document"
 
     func sendNoteDeletionNotification(for nodes: Set<pugi.xml_node>) {

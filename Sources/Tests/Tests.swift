@@ -3,7 +3,7 @@ import Testing
 
 struct Tests {
     @Test
-    func namespaceResolution() {
+    func deferredNamespaceResolution() {
         let document = Document()
         let root = document.makeDocumentElement(name: "root")
 
@@ -36,6 +36,35 @@ struct Tests {
 
         root.declareNamespace("namespace3", forPrefix: "aa")
         #expect(a[attribute: "aa:c"] == "bar")
+    }
+
+    @Test
+    func expandedNames() throws {
+        let doc = Document()
+        let root = doc.makeDocumentElement(name: "root")
+        let nn1 = "namespace1"
+        let nn2 = "namespace2"
+
+        root.declareNamespace(nn2, forPrefix: "n2")
+
+        let en1 = ExpandedName(namespaceName: nn1, localName: "local1")
+        let en2 = ExpandedName(namespaceName: nn2, localName: "local2")
+
+        let e1 = root.appendElement(en1)
+        #expect(e1.expandedName == en1)
+
+        #expect(root[elements: en1].count == 1)
+        #expect(root[elements: en2].count == 0)
+
+        let e2 = root.appendElement(en2)
+        #expect(e2.expandedName == en2)
+        #expect(root[elements: en2].count == 1)
+
+        root.declareNamespace(nn1, forPrefix: "n1")
+        #expect(e1.expandedName == en1)
+
+        #expect(doc.pendingNameRecordCount == 0)
+        _ = try doc.xmlData() // Should not throw
     }
 
     // addChild should return nil if the type of node can't be added to that parent
