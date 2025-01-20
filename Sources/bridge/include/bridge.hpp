@@ -3,10 +3,6 @@
 
 #include <pugixml.hpp>
 
-#ifdef __BLOCKS__
-//#include <Block.h>
-#endif
-
 class bridge_writer : public pugi::xml_writer {
 private:
     void (^write_block)(const void*, size_t);
