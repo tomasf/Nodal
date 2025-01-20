@@ -5,8 +5,7 @@ import Bridge
 /// Represents an XML document node, providing methods for working with the document structure and serialization.
 public class Document: Node {
     internal var pugiDocument = pugi.xml_document()
-    internal var objectDirectory = PointerToObjectMap<Element>(strength: .weak)
-    internal var pendingNamespaceRecords = PointerToObjectMap<PendingNameRecord>(strength: .strong)
+    internal var pendingNamespaceRecords: [OpaquePointer: PendingNameRecord] = [:]
 
     internal required init(owningDocument: Document?, node: pugi.xml_node) {
         super.init(owningDocument: nil, node: pugiDocument.asNode)
@@ -20,7 +19,7 @@ public class Document: Node {
     ///
     /// - Note: This property helps identify undeclared namespaces that need to be resolved to generate XML output.
     public var undeclaredNamespaceNames: Set<String> {
-        Set(pendingNamespaceRecords.contents.flatMap(\.value.namespaceNames))
+        Set(pendingNamespaceRecords.flatMap(\.value.namespaceNames))
     }
 
     private func save(encoding: String.Encoding = .utf8,

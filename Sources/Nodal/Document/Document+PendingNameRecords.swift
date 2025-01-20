@@ -18,17 +18,18 @@ internal extension Document {
 
     func removePendingNameRecords(withinTree ancestor: Element, excludingTarget: Bool = false) {
         let nodePointer = ancestor.nodePointer
-        let keys = pendingNamespaceRecords.contents.filter { node, record in
+        let keys = pendingNamespaceRecords.filter { node, record in
             if excludingTarget && node == nodePointer {
                 return false
             }
             return record.ancestors.contains(ancestor.node)
         }.map(\.key)
-        pendingNamespaceRecords.removeObjects(forKeys: keys)
+
+        for key in keys { pendingNamespaceRecords[key] = nil }
     }
 
     func pendingNameRecords(forDescendantsOf parent: Element) -> [(Element, PendingNameRecord)] {
-        pendingNamespaceRecords.contents.compactMap {
+        pendingNamespaceRecords.compactMap {
             $1.belongsToTree(parent) ? (element(for: .init($0)), $1) : nil
         }
     }

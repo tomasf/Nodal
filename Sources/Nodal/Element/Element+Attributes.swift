@@ -7,7 +7,6 @@ internal extension Element {
     }
 
     func declaredNamespacesDidChange() {
-        invalidateNamespaceCache()
         let namespaces = declaredNamespaces
         for (element, record) in document.pendingNameRecords(forDescendantsOf: self) {
             if record.attemptResolution(for: element, with: namespaces) {

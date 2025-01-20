@@ -57,21 +57,16 @@ struct Tests {
     }
 
     @Test
-    func lab() throws {
-        let document = try Document(xmlString: """
-<catalog>
-  <book id="bk101">
-    <title>XML Developer's Guide</title>
-  </book>
-  <book id="bk102">
-    <title>Midnight Rain</title>
-  </book>
-</catalog>
-""")
+    func testInvalidation() throws {
+        let doc = Document()
+        let root = doc.makeDocumentElement(name: "root")
+        let a = root.appendElement("a")
+        let b = a.appendElement("b")
 
-        let query = try XPathQuery("//book[@id='bk101']/title")
-        if let name = query.firstNodeResult(with: document)?.node?.concatenatedText {
-            print("Book name:", name) // Outputs "XML Developer's Guide"
-        }
+        #expect(a.isValid == true)
+        #expect(b.isValid == true)
+        root.removeChild(a)
+        #expect(a.isValid == false)
+        #expect(b.isValid == false)
     }
 }

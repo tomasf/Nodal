@@ -10,14 +10,50 @@ import Bridge
 public class Node {
     private let owningDocument: Document?
     internal var node: pugi.xml_node
+    private var notificationToken: Any?
 
     internal required init(owningDocument: Document?, node: pugi.xml_node) {
         self.owningDocument = owningDocument
         self.node = node
+
+        struct NodeBox: @unchecked Sendable { weak var node: Node? }
+        let box = NodeBox(node: self)
+
+        notificationToken = NotificationCenter.default.addObserver(forName: .documentDidDeleteNodes, object: owningDocument, queue: nil, using: {
+            if let self = box.node,
+               let deletedNodes = ($0.userInfo?[Document.deletedNodesUserInfoKey] as? Set<pugi.xml_node>) {
+                self.handleDeletedNodes(deletedNodes)
+            }
+        })
+    }
+
+    deinit {
+        if let notificationToken {
+            NotificationCenter.default.removeObserver(notificationToken)
+        }
     }
 
     internal func invalidate() {
         node = .init()
+        if let notificationToken {
+            NotificationCenter.default.removeObserver(notificationToken)
+        }
+        notificationToken = nil
+    }
+
+    internal var isValid: Bool {
+        node.empty() == false
+    }
+
+    internal func handleDeletedNodes(_ nodes: Set<pugi.xml_node>) {
+        var node = self.node
+        while !node.empty() {
+            if nodes.contains(node) {
+                invalidate()
+                return
+            }
+            node = node.parent()
+        }
     }
 
     /// The document that owns this node.

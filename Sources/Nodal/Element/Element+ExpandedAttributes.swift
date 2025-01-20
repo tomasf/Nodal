@@ -9,17 +9,15 @@ public extension Element {
     /// - Note: Setting this property replaces all existing attributes with the new ones, preserving the specified order.
     var orderedAttributes: [(name: ExpandedName, value: String)] {
         get {
-            let namespaces = namespacesInScope
             return nodeAttributes.map {(
-                ExpandedName(effectiveQualifiedAttributeName: String(cString: $0.name()), in: self, using: namespaces),
+                ExpandedName(effectiveQualifiedAttributeName: String(cString: $0.name()), in: self),
                 String(cString: $0.value())
             )}
         }
         set {
-            let namespaces = namespacesInScope
             node.remove_attributes()
             for (name, value) in newValue {
-                let qName = name.effectiveQualifiedAttributeName(for: self, using: namespaces)
+                let qName = name.effectiveQualifiedAttributeName(for: self)
                 var attr = node.append_attribute(qName)
                 attr.set_value(value)
             }
@@ -53,7 +51,7 @@ public extension Element {
     subscript(attribute name: ExpandedName) -> String? {
         get {
             let qName: String
-            if let match = name.qualifiedAttributeName(using: namespacesInScope) {
+            if let match = name.qualifiedAttributeName(in: self) {
                 qName = match
             } else if let placeholder = pendingNameRecord?.attributes[name] {
                 // Namespace not in scope; try pending placeholder
@@ -65,7 +63,7 @@ public extension Element {
             return self[attribute: qName]
         }
         set {
-            let qName = name.effectiveQualifiedAttributeName(for: self, using: namespacesInScope)
+            let qName = name.effectiveQualifiedAttributeName(for: self)
             self[attribute: qName] = newValue
         }
     }

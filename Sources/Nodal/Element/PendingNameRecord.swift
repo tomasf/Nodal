@@ -64,10 +64,6 @@ internal class PendingNameRecord {
         return names
     }
 
-    func attemptResolution(for element: Element) -> Bool {
-        attemptResolution(for: element, with: element.namespacesInScope)
-    }
-
     // Returns true if the element is now completely resolved and the record can be removed
     func attemptResolution(for element: Element, with namespaceBindings: NamespaceBindings) -> Bool {
         let namespaces = namespaceBindings.nameToPrefixMapping

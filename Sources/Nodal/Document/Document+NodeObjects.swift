@@ -2,52 +2,9 @@ import Foundation
 import pugixml
 
 internal extension Document {
-    // Associate an Element object with an element node
-    func setElementObject(_ element: Element, forNode node: pugi.xml_node) {
-        objectDirectory[node.internal_object()] = element
-    }
-
-    // Fetches any already existing Element object for a given element node
-    func existingElementObject(forNode node: pugi.xml_node) -> Element? {
-        objectDirectory[node.internal_object()]
-    }
-
-    // Create a new Element object for a given node
-    // This can be used directly for newly created nodes, to avoid checking the map table first
-    func createElementObject(forNode node: pugi.xml_node) -> Element {
-        let new = Element(owningDocument: self, node: node)
-        setElementObject(new, forNode: node)
-        //print("Created object. Count: \(objectDirectory.count)")
-        return new
-    }
-
-    func invalidateElementObject(_ element: Element) {
-        objectDirectory[element.nodePointer] = nil
-        element.invalidate()
-    }
-
-    func invalidateElementObjects(withinTree ancestor: Element, excludingTarget: Bool = false) {
-        ancestor.traverse { pugiNode, _ in
-            if pugiNode.type() == pugi.node_element {
-                self.existingElementObject(forNode: pugiNode)?.invalidate()
-                self.objectDirectory[pugiNode.internal_object()] = nil
-            }
-            return true
-        }
-        if !excludingTarget {
-            objectDirectory[ancestor.nodePointer] = nil
-            ancestor.invalidate()
-        }
-    }
-
     // Get an Element object for an element node
-    // This returns an existing object if one exists; otherwise creates one
     func element(for node: pugi.xml_node) -> Element {
-        if let existing = existingElementObject(forNode: node) {
-            return existing
-        } else {
-            return createElementObject(forNode: node)
-        }
+        Element(owningDocument: self, node: node)
     }
 
     // This gets a Node object for any node. Non-element objects are not reused.
@@ -63,4 +20,16 @@ internal extension Document {
     func objectIfValid(_ node: pugi.xml_node) -> Node? {
         node.empty() ? nil : object(for: node)
     }
+
+    static let deletedNodesUserInfoKey = "Nodal.DeletedNodes"
+
+    func sendNoteDeletionNotification(for nodes: Set<pugi.xml_node>) {
+        NotificationCenter.default.post(name: .documentDidDeleteNodes, object: self, userInfo: [
+            Self.deletedNodesUserInfoKey: nodes
+        ])
+    }
+}
+
+internal extension Notification.Name {
+    static let documentDidDeleteNodes = Notification.Name("Nodal.Document.didDeleteNodes")
 }

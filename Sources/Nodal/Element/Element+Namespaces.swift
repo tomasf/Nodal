@@ -19,19 +19,80 @@ internal extension Element {
     ]
 
     var explicitNamespacesInScope: NamespaceBindings {
-        var namespaces = parentElement?.explicitNamespacesInScope ?? [:]
-
-        for pugiAttribute in nodeAttributes {
-            let name = String(cString: pugiAttribute.name())
-            if name == "xmlns" {
-                namespaces[nil] = String(cString: pugiAttribute.value())
-            } else if name.hasPrefix("xmlns:") {
-                let prefix = String(name.dropFirst(6))
-                namespaces[prefix] = String(cString: pugiAttribute.value())
+        var namespaces: NamespaceBindings = [:]
+        var node: pugi.xml_node = self.node
+        while !node.empty() {
+            var attribute = node.first_attribute()
+            while !attribute.empty() {
+                let name = String(cString: attribute.name())
+                if name.hasPrefix("xmlns") {
+                    let prefix = name == "xmlns" ? nil : name.qNameLocalName
+                    if namespaces[prefix] == nil {
+                        namespaces[prefix] = String(cString: attribute.value())
+                    }
+                }
+                attribute = attribute.next_attribute()
             }
+            node = node.parent()
         }
-
         return namespaces
+    }
+
+    func prefix(for namespaceName: String) -> String? {
+        if namespaceName == "http://www.w3.org/XML/1998/namespace" { return "xml" }
+        if namespaceName == "http://www.w3.org/2000/xmlns/" { return "xmlns" }
+
+        var node: pugi.xml_node = self.node
+        while !node.empty() {
+            var attribute = node.first_attribute()
+            while !attribute.empty() {
+                let name = String(cString: attribute.name())
+                if name.hasPrefix("xmlns"), String(cString: attribute.value()) == namespaceName {
+                    return name.count == 5 ? "" : name.qNameLocalName
+                }
+                attribute = attribute.next_attribute()
+            }
+            node = node.parent()
+        }
+        return nil
+    }
+
+    func nonDefaultPrefix(for namespaceName: String) -> String? {
+        if namespaceName == "http://www.w3.org/XML/1998/namespace" { return "xml" }
+        if namespaceName == "http://www.w3.org/2000/xmlns/" { return "xmlns" }
+
+        var node: pugi.xml_node = self.node
+        while !node.empty() {
+            var attribute = node.first_attribute()
+            while !attribute.empty() {
+                let name = String(cString: attribute.name())
+                if name.hasPrefix("xmlns:"), String(cString: attribute.value()) == namespaceName {
+                    return name.qNameLocalName
+                }
+                attribute = attribute.next_attribute()
+            }
+            node = node.parent()
+        }
+        return nil
+    }
+
+    func namespaceName(for prefix: String?) -> String? {
+        if prefix == "xml" { return "http://www.w3.org/XML/1998/namespace" }
+        if prefix == "xmlns" { return "http://www.w3.org/2000/xmlns/" }
+
+        let targetAttributeName = if let prefix { "xmlns:" + prefix } else { "xmlns" }
+        var node: pugi.xml_node = self.node
+        while !node.empty() {
+            var attribute = node.first_attribute()
+            while !attribute.empty() {
+                if String(cString: attribute.name()) == targetAttributeName {
+                    return String(cString: attribute.value())
+                }
+                attribute = attribute.next_attribute()
+            }
+            node = node.parent()
+        }
+        return nil
     }
 }
 
@@ -82,16 +143,10 @@ public extension Element {
     /// - Returns: A dictionary where the keys are namespace prefixes (or `nil` for the default namespace),
     ///            and the values are the corresponding namespace names (URIs).
     var namespacesInScope: NamespaceBindings {
-        if let cachedNamespacesInScope {
-            return cachedNamespacesInScope
-        }
-
         var namespaces = explicitNamespacesInScope
         for (key, value) in Self.fixedNamespaces {
             namespaces[key] = value
         }
-
-        cachedNamespacesInScope = namespaces
         return namespaces
     }
 
@@ -99,7 +154,7 @@ public extension Element {
     ///
     /// - Returns: The URI associated with the default namespace (`xmlns`) in this scope, or `nil` if no default namespace is declared.
     var defaultNamespaceName: String? {
-        namespacesInScope[nil]
+        namespaceName(for: nil)
     }
 
     /// The local name of this element's qualified name, excluding any prefix.
@@ -116,7 +171,7 @@ public extension Element {
     ///
     /// - Returns: The namespace URI for the prefix, or `nil` if the prefix is not bound to a namespace.
     var namespaceName: String? {
-        namespacesInScope[prefix]
+        namespaceName(for: prefix)
     }
 
     /// The expanded name of this element, including its namespace name (URI) and local name.
@@ -131,7 +186,7 @@ public extension Element {
             }
         }
         set {
-            name = newValue.effectiveQualifiedElementName(for: self, using: namespacesInScope)
+            name = newValue.effectiveQualifiedElementName(for: self)
         }
     }
 

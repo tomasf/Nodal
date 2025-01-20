@@ -94,7 +94,7 @@ public extension Element {
     /// - Returns: The newly created child element.
     @discardableResult
     func appendElement(_ name: String) -> Element {
-        let element = document.createElementObject(forNode: node.append_child(pugi.node_element))
+        let element = document.element(for: node.append_child(pugi.node_element))
         element.name = name
         return element
     }
