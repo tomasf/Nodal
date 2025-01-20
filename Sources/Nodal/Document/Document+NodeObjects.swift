@@ -22,10 +22,12 @@ internal extension Document {
     }
 
     static let deletedNodesUserInfoKey = "Nodal.DeletedNodes"
+    static let documentUserInfoKey = "Nodal.Document"
 
     func sendNoteDeletionNotification(for nodes: Set<pugi.xml_node>) {
         NotificationCenter.default.post(name: .documentDidDeleteNodes, object: self, userInfo: [
-            Self.deletedNodesUserInfoKey: nodes
+            Self.deletedNodesUserInfoKey: nodes,
+            Self.documentUserInfoKey: self
         ])
     }
 }

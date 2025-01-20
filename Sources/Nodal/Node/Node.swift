@@ -19,8 +19,9 @@ public class Node {
         struct NodeBox: @unchecked Sendable { weak var node: Node? }
         let box = NodeBox(node: self)
 
-        notificationToken = NotificationCenter.default.addObserver(forName: .documentDidDeleteNodes, object: owningDocument, queue: nil, using: {
+        notificationToken = NotificationCenter.default.addObserver(forName: .documentDidDeleteNodes, object: nil, queue: nil, using: {
             if let self = box.node,
+               ($0.userInfo?[Document.documentUserInfoKey] as? Document) == self.owningDocument,
                let deletedNodes = ($0.userInfo?[Document.deletedNodesUserInfoKey] as? Set<pugi.xml_node>) {
                 self.handleDeletedNodes(deletedNodes)
             }
