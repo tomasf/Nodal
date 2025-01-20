@@ -46,13 +46,4 @@ public extension Element {
         commentNode.set_value(text)
         return document.object(for: commentNode)
     }
-
-    /// Concatenates the values of all child text nodes of the element.
-    ///
-    /// - Returns: A single string containing the concatenated text content of all child nodes of type `.text`.
-    ///
-    /// - Note: This property ignores other types of child nodes, such as elements, CDATA, or comments.
-    var concatenatedText: String {
-        children(ofKind: .text).map(\.value).joined()
-    }
 }

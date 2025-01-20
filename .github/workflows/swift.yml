@@ -1,0 +1,29 @@
+# This workflow will build a Swift project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-swift
+
+name: Swift
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-14, ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: SwiftyLab/setup-swift@latest
+      with:
+        development: ${{ matrix.os == 'windows-latest' }}
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    - name: Build
+      run: swift build -v
+

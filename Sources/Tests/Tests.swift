@@ -54,6 +54,24 @@ struct Tests {
 
         #expect(a.addChild(ofKind: .comment) != nil)
         #expect(document.addChild(ofKind: .comment) != nil)
+    }
 
+    @Test
+    func lab() throws {
+        let document = try Document(xmlString: """
+<catalog>
+  <book id="bk101">
+    <title>XML Developer's Guide</title>
+  </book>
+  <book id="bk102">
+    <title>Midnight Rain</title>
+  </book>
+</catalog>
+""")
+
+        let query = try XPathQuery("//book[@id='bk101']/title")
+        if let name = query.firstNodeResult(with: document)?.node?.concatenatedText {
+            print("Book name:", name) // Outputs "XML Developer's Guide"
+        }
     }
 }
