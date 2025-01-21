@@ -9,8 +9,8 @@ struct Tests {
 
         // Elements should not have pending records yet
         #expect(document.pendingNameRecordCount == 0)
-        let a = root.appendElement("a", namespace: "namespace1")
-        let b = root.appendElement("b", namespace: "namespace1")
+        let a = root.addElement("a", namespace: "namespace1")
+        let b = root.addElement("b", namespace: "namespace1")
         #expect(document.pendingNameRecordCount == 2)
 
         #expect(PendingNameRecord.qualifiedNameIndicatesPending(a.name))
@@ -51,13 +51,13 @@ struct Tests {
         let en1 = ExpandedName(namespaceName: nn1, localName: "local1")
         let en2 = ExpandedName(namespaceName: nn2, localName: "local2")
 
-        let e1 = root.appendElement(en1)
+        let e1 = root.addElement(en1)
         #expect(e1.expandedName == en1)
 
         #expect(root[elements: en1].count == 1)
         #expect(root[elements: en2].count == 0)
 
-        let e2 = root.appendElement(en2)
+        let e2 = root.addElement(en2)
         #expect(e2.expandedName == en2)
         #expect(root[elements: en2].count == 1)
 
@@ -90,8 +90,8 @@ struct Tests {
     func testInvalidation() throws {
         let doc = Document()
         let root = doc.makeDocumentElement(name: "root")
-        let a = root.appendElement("a")
-        let b = a.appendElement("b")
+        let a = root.addElement("a")
+        let b = a.addElement("b")
 
         #expect(a.isValid == true)
         #expect(b.isValid == true)
@@ -110,10 +110,10 @@ struct Tests {
         #expect(decl!.supportsAttributes == true)
         decl![attribute: "q2"] = "v2"
 
-        let a = root.appendElement("a")
+        let a = root.addElement("a")
         #expect(a.supportsAttributes == true)
         a[attribute: "q1"] = "v1"
-        let text = a.appendText("text")
+        let text = a.addText("text")
         #expect(text.supportsAttributes == false)
 
         #expect(try doc.xmlString(options: .raw) == "<?xml q2=\"v2\"?><root><a q1=\"v1\">text</a></root>")
