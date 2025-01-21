@@ -27,6 +27,7 @@ struct Tests {
         #expect(a[attribute: "x:b"] == "foo")
 
         a[attribute: "c", namespaceName: "namespace3"] = "bar"
+        #expect(a[attribute: "c", namespaceName: "namespace3"] == "bar")
         #expect(document.pendingNameRecordCount == 1)
 
         #expect(a[attribute: "__pending:c"] == "bar")
@@ -97,5 +98,57 @@ struct Tests {
         root.removeChild(a)
         #expect(a.isValid == false)
         #expect(b.isValid == false)
+    }
+
+    @Test
+    func attributes() throws {
+        let doc = Document()
+        let decl = doc.addChild(ofKind: .declaration)
+        let root = doc.makeDocumentElement(name: "root")
+
+        #expect(decl != nil)
+        #expect(decl!.supportsAttributes == true)
+        decl![attribute: "q2"] = "v2"
+
+        let a = root.appendElement("a")
+        #expect(a.supportsAttributes == true)
+        a[attribute: "q1"] = "v1"
+        let text = a.appendText("text")
+        #expect(text.supportsAttributes == false)
+
+        #expect(try doc.xmlString(options: .raw) == "<?xml q2=\"v2\"?><root><a q1=\"v1\">text</a></root>")
+    }
+
+    @Test
+    func textContent() throws {
+        let doc = try Document(string: """
+        <root>
+            foo
+            <a>
+                bar
+                <b>baz<!--comment--><![CDATA[zoing]]>biz</b>
+                doz
+            </a>
+        </root>
+""", options: [.default, .trimTextWhitespace])
+        #expect(doc.textContent == "foobarbazzoingbizdoz")
+    }
+
+    @Test
+    func lab() throws {
+        let doc = try Document(string: """
+        <root>
+            foo
+            <a>
+                bar
+                <b>baz<!--comment--><![CDATA[zoing]]>biz</b>
+                doz
+            </a>
+        </root>
+""", options: [.default, .trimTextWhitespace])
+
+        for node in doc.descendants {
+            print("Found \(node)!")
+        }
     }
 }

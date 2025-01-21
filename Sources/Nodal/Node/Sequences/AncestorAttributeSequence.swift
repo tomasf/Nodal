@@ -1,10 +1,10 @@
 import Foundation
 import pugixml
 
+// Visits all attributes of the target and its ancestors
 internal struct AncestorAttributeSequence: Sequence, IteratorProtocol {
     private var node: pugi.xml_node
     private var attribute: pugi.xml_attribute
-    private var current: pugi.xml_attribute? = nil
 
     init(target: pugi.xml_node) {
         node = target
@@ -27,12 +27,6 @@ internal struct AncestorAttributeSequence: Sequence, IteratorProtocol {
         let result = attribute
         attribute = attribute.next_attribute()
         return result
-    }
-}
-
-internal extension Element {
-    var ancestorAttributes: AncestorAttributeSequence {
-        AncestorAttributeSequence(target: self)
     }
 }
 

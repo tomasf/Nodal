@@ -13,11 +13,6 @@ internal extension Element {
         return document.addPendingNameRecord(for: self)
     }
 
-    static let fixedNamespaces: NamespaceBindings = [
-        "xml": "http://www.w3.org/XML/1998/namespace",
-        "xmlns": "http://www.w3.org/2000/xmlns/"
-    ]
-
     var explicitNamespacesInScope: NamespaceBindings {
         node.explicitNamespacesInScope
     }
@@ -83,9 +78,8 @@ public extension Element {
     ///            and the values are the corresponding namespace names (URIs).
     var namespacesInScope: NamespaceBindings {
         var namespaces = explicitNamespacesInScope
-        for (key, value) in Self.fixedNamespaces {
-            namespaces[key] = value
-        }
+        namespaces[pugi.xml_node.xmlNamespacePrefix] = pugi.xml_node.xmlNamespaceName
+        namespaces[pugi.xml_node.nsNamespacePrefix] = pugi.xml_node.nsNamespaceName
         return namespaces
     }
 
@@ -117,12 +111,8 @@ public extension Element {
     ///
     /// - Returns: An `ExpandedName` containing the local name and namespace name.
     var expandedName: ExpandedName {
-        get {
-            document.expandedName(for: node)
-        }
-        set {
-            name = newValue.effectiveQualifiedElementName(for: self)
-        }
+        get { document.expandedName(for: node) }
+        set { name = newValue.requestQualifiedElementName(for: self) }
     }
 
     /// The names of namespaces that are referenced in this element or its descendants but have not been declared.

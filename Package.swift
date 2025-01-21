@@ -17,14 +17,19 @@ let package = Package(
         .target(
             name: "Bridge",
             dependencies: ["pugixml"],
-            path: "Sources/bridge"
+            path: "Sources/bridge",
+            publicHeadersPath: "."
         ),
         .target(
             name: "Nodal",
             dependencies: ["pugixml", "Bridge"],
             swiftSettings: [.interoperabilityMode(.Cxx)]
         ),
-        .testTarget(name: "Tests", dependencies: ["Nodal"], swiftSettings: [.interoperabilityMode(.Cxx)])
+        .testTarget(
+            name: "Tests",
+            dependencies: ["Nodal"],
+            swiftSettings: [.interoperabilityMode(.Cxx)]
+        )
     ],
     cxxLanguageStandard: .cxx17
 )

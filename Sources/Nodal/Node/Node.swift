@@ -57,6 +57,9 @@ public class Node {
         }
     }
 
+    func declaredNamespacesDidChange() {}
+    var hasNamespaceDeclarations: Bool { false }
+
     /// The document that owns this node.
     ///
     /// - Returns: The `Document` that this node belongs to.
@@ -98,12 +101,6 @@ public class Node {
     }
 }
 
-extension Node: Equatable {
-    public static func ==(lhs: Node, rhs: Node) -> Bool {
-        lhs.node == rhs.node
-    }
-}
-
 public extension Node {
     /// The name of the node.
     ///
@@ -133,15 +130,6 @@ public extension Node {
             node.set_value(newValue)
         }
     }
-
-    /// Concatenates the values of all child text nodes of the node.
-    ///
-    /// - Returns: A single string containing the concatenated text content of all child nodes of type `.text`.
-    ///
-    /// - Note: This property ignores other types of child nodes, such as elements, CDATA, or comments.
-    var concatenatedText: String {
-        children(ofKind: .text).map(\.value).joined()
-    }
 }
 
 internal extension Node {
@@ -150,12 +138,18 @@ internal extension Node {
     }
 }
 
+extension Node: Equatable {
+    public static func ==(lhs: Node, rhs: Node) -> Bool {
+        lhs.node == rhs.node
+    }
+}
+
 extension Node: CustomDebugStringConvertible {
     public var debugDescription: String {
         switch kind {
         case .element: "Element <\(name)>"
-        case .text: "Text \"(\(value))\""
-        case .cdata: "CDATA \"(\(value))\""
+        case .text: "Text \"\(value)\""
+        case .cdata: "CDATA \"\(value)\""
         case .comment: "Comment <!--\(value)-->"
         case .doctype: "<!DOCTYPE \(value)>"
         case .processingInstruction: "PI <?\(name) \(value)?>"

@@ -16,8 +16,8 @@ void xml_node_print_with_block (
                                 unsigned int flags,
                                 pugi::xml_encoding encoding,
                                 unsigned int depth,
-                                void (^block)(const void*, size_t))
-{
+                                void (^block)(const void*, size_t)
+){
     bridge_writer writer(block);
     node.print(writer, indent, flags, encoding, depth);
 }
@@ -27,8 +27,8 @@ void xml_document_save_with_block (
                                 const pugi::char_t* indent,
                                 unsigned int flags,
                                 pugi::xml_encoding encoding,
-                                void (^block)(const void*, size_t))
-{
+                                void (^block)(const void*, size_t)
+){
     bridge_writer writer(block);
     node.save(writer, indent, flags, encoding);
 }
@@ -36,21 +36,4 @@ void xml_document_save_with_block (
 // This is dumb, but it's needed due to a limitation of Swift's C++ interop
 pugi::xml_node xml_document_as_node(const pugi::xml_document& document) {
     return document;
-}
-
-
-bridge_walker::bridge_walker(bool (^block)(const pugi::xml_node& node, int depth)) : foreach_block(block) {}
-bridge_walker::~bridge_walker() {}
-
-bool bridge_walker::for_each(pugi::xml_node& node) {
-    if (foreach_block) {
-        return foreach_block(node, depth());
-    } else {
-        return false;
-    }
-}
-
-bool xml_node_walk_block(pugi::xml_node& node, bool (^block)(const pugi::xml_node& node, int depth)) {
-    bridge_walker walker(block);
-    return node.traverse(walker);
 }

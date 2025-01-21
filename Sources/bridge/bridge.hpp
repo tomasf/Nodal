@@ -33,18 +33,4 @@ void xml_document_save_with_block(
 
 pugi::xml_node xml_document_as_node(const pugi::xml_document& node);
 
-
-class bridge_walker : public pugi::xml_tree_walker {
-private:
-    bool (^foreach_block)(const pugi::xml_node& node, int depth);
-
-public:
-    explicit bridge_walker(bool (^block)(const pugi::xml_node& node, int depth));
-    ~bridge_walker();
-
-    bool for_each(pugi::xml_node& node) override;
-};
-
-bool xml_node_walk_block(pugi::xml_node& node, bool (^block)(const pugi::xml_node& node, int depth));
-
 #endif // BRIDGE_HPP

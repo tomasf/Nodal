@@ -2,48 +2,35 @@ import Foundation
 import pugixml
 
 public extension Element {
-    /// Appends a new text node with the specified content to the element.
+    /// Adds a new text node with the specified content to this element at the given position.
     ///
-    /// - Parameter text: The text content to add as a new text node.
+    /// - Parameters:
+    ///   - text: The text content to add as a new text node.
+    ///   - position: The position where the text node should be inserted. Defaults to `.last`, adding the text node as the last child of this element.
     /// - Returns: The newly created text node.
-    ///
-    /// - Note: This method adds a node of type `.text` containing the given text.
     ///
     /// - Example:
     ///   ```swift
     ///   let element: Element = ...
-    ///   element.appendText("Hello, world!")
+    ///   element.addText("Hello, world!")
     ///   ```
     @discardableResult
-    func appendText(_ text: String) -> Node {
-        var textNode = node.append_child(pugi.node_pcdata)
+    func addText(_ text: String, at position: Node.Position = .last) -> Node {
+        var textNode = node.addChild(kind: pugi.node_pcdata, at: position)
         textNode.set_value(text)
         return document.object(for: textNode)
     }
 
-    /// Appends a new CDATA section with the specified content to the element.
+    /// Adds a new CDATA node with the specified content to this element at the given position.
     ///
-    /// - Parameter text: The content to include in the CDATA section.
+    /// - Parameters:
+    ///   - text: The content to include in the CDATA section.
+    ///   - position: The position where the CDATA section should be inserted. Defaults to `.last`, adding the CDATA section as the last child of this element.
     /// - Returns: The newly created CDATA node.
-    ///
-    /// - Note: This method adds a node of type `.cdata` containing the given content.
     @discardableResult
-    func appendCDATA(_ text: String) -> Node {
-        var cdataNode = node.append_child(pugi.node_cdata)
+    func addCDATA(_ text: String, at position: Node.Position = .last) -> Node {
+        var cdataNode = node.addChild(kind: pugi.node_cdata, at: position)
         cdataNode.set_value(text)
         return document.object(for: cdataNode)
-    }
-
-    /// Appends a new comment with the specified content to the element.
-    ///
-    /// - Parameter text: The content to include in the comment.
-    /// - Returns: The newly created comment node.
-    ///
-    /// - Note: This method adds a node of type `.comment` containing the given content.
-    @discardableResult
-    func appendComment(_ text: String) -> Node {
-        var commentNode = node.append_child(pugi.node_comment)
-        commentNode.set_value(text)
-        return document.object(for: commentNode)
     }
 }

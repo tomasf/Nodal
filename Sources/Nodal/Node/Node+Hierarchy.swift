@@ -2,16 +2,6 @@ import Foundation
 import pugixml
 import Bridge
 
-internal extension Node {
-    func childNodes(ofType targetType: pugi.xml_node_type = pugi.node_null) -> [pugi.xml_node] {
-        childNodes.filter { targetType == pugi.node_null || $0.type() == targetType }
-    }
-
-    func traverse(_ function: @escaping (pugi.xml_node, Int) -> Bool) {
-        xml_node_walk_block(&node) { function($0, Int($1)) }
-    }
-}
-
 public extension Node {
     /// The parent node of this node, or `nil` if this node has no parent.
     var parent: Node? {
@@ -21,20 +11,31 @@ public extension Node {
     /// The child nodes of this node.
     ///
     /// - Returns: An array of `Node` objects representing all child nodes of this node.
-    var children: [Node] {
-        childNodes().map { document.object(for: $0) }
+    var children: some Sequence<Node> {
+        node.children.lazy.map { self.document.object(for: $0) }
     }
 
     /// Retrieves the child nodes of a specific kind.
     ///
     /// - Parameter kind: The kind of child nodes to retrieve.
     /// - Returns: An array of `Node` objects of the specified kind.
-    func children(ofKind kind: Kind) -> [Node] {
-        childNodes(ofType: kind.pugiType).map {
-            document.object(for: $0)
-        }
+    func children(ofKind kind: Kind) -> some Sequence<Node> {
+        let pugiType = kind.pugiType
+        return node.children.lazy
+            .filter { $0.type() == pugiType }
+            .map { self.document.object(for: $0) }
     }
 
+    /// A sequence that traverses all descendant nodes of this node in depth-first order, including the node itself.
+    ///
+    /// - Important: Avoid making changes to the tree while traversing to prevent unexpected results.
+    ///
+    /// - Returns: A `NodeDescendants` sequence that iterates over all nodes in the tree, starting with this node.
+    var descendants: some Sequence<Node> {
+        DescendantSequence(target: self.node).lazy.map { node in
+            self.document.object(for: node)
+        }
+    }
 
     /// The previous sibling of this node, or `nil` if this node has no previous sibling.
     ///
@@ -48,18 +49,6 @@ public extension Node {
     /// - Note: A sibling is another node with the same parent as this node, appearing immediately after it in the parent's child list.
     var nextSibling: Node? {
         document.objectIfValid(node.next_sibling())
-    }
-
-    /// Traverses the entire subtree within this node, invoking a callback function for each node.
-    ///
-    /// - Parameter function: A closure that is called for each node. The closure takes two parameters:
-    ///   - node: The current `Node` being traversed.
-    ///   - level: The depth level of the current node relative to the starting node.
-    ///   Return `true` from the closure to continue traversal, or `false` to stop.
-    ///
-    /// - Note: The traversal order is determined by the underlying XML structure.
-    func traverseTree(_ function: @escaping (Node, _ level: Int) -> Bool) {
-        traverse { function(self.document.object(for: $0), $1) }
     }
 
     /// Determines whether this node is a descendant of the specified ancestor node.
@@ -79,12 +68,14 @@ public extension Node {
 }
 
 public extension Node {
-    /// Adds a new child node of the specified kind to this node.
+    /// Adds a new child node of the specified kind to this node at the given position.
     ///
-    /// - Parameter kind: The kind of child node to add.
+    /// - Parameters:
+    ///   - kind: The kind of child node to add (e.g., element, text, comment).
+    ///   - position: The position where the new child node should be inserted. Defaults to `.last`, adding the child as the last child of this node.
     /// - Returns: The newly created child node, or `nil` if that kind of child can't be added to this node.
-    func addChild(ofKind kind: Kind) -> Node? {
-        document.objectIfValid(node.append_child(kind.pugiType))
+    func addChild(ofKind kind: Kind, at position: Position = .last) -> Node? {
+        document.objectIfValid(node.addChild(kind: kind.pugiType, at: position))
     }
 
     /// Removes the specified child node from this node.
@@ -105,5 +96,55 @@ public extension Node {
             document.sendNoteDeletionNotification(for: Set(children.map(\.node)))
         }
         node.remove_children()
+    }
+}
+
+public extension Node {
+    /// Adds a new comment with the specified content to this node at the given position.
+    ///
+    /// - Parameters:
+    ///   - text: The content to include in the comment.
+    ///   - position: The position where the comment node should be inserted. Defaults to `.last`, adding the comment as the last child of this node.
+    /// - Returns: The newly created comment node.
+    @discardableResult
+    func addComment(_ text: String, at position: Position = .last) -> Node {
+        var commentNode = node.addChild(kind: pugi.node_comment, at: position)
+        commentNode.set_value(text)
+        return document.object(for: commentNode)
+    }
+
+    /// Concatenates the values of all descendant text and CDATA nodes of this node.
+    ///
+    /// - Returns: A single string containing the concatenated text of all descendant nodes of type `.text` or `.cdata`.
+    var textContent: String {
+        node.descendants
+            .filter { $0.type() == pugi.node_pcdata || $0.type() == pugi.node_cdata }
+            .map { String(cString: $0.value()) }
+            .joined()
+    }
+}
+
+public extension Node {
+    /// Specifies the position at which a new child node should be added relative to existing children.
+    enum Position {
+        /// The new child is added as the first child of the parent node.
+        case first
+
+        /// The new child is added immediately before the specified sibling node.
+        case before(Node)
+
+        /// The new child is added immediately after the specified sibling node.
+        case after(Node)
+
+        /// The new child is added as the last child of the parent node.
+        case last
+
+        internal func validate(for parent: pugi.xml_node) -> Bool {
+            switch self {
+            case .first, .last: true
+            case .before (let node): node.parent?.node == parent
+            case .after (let node): node.parent?.node == parent
+            }
+        }
     }
 }

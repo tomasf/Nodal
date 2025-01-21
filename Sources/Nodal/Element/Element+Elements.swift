@@ -11,7 +11,8 @@ public extension Element {
     ///
     /// - Returns: An array of all child nodes that are elements.
     var elements: [Element] {
-        childNodes(ofType: pugi.node_element)
+        node.children
+            .filter { $0.type() == pugi.node_element }
             .map { document.element(for: $0) }
     }
 
@@ -20,7 +21,7 @@ public extension Element {
     /// - Parameter name: The qualified name of the child element to retrieve.
     /// - Returns: The first child element with the specified name, or `nil` if no such element exists.
     subscript(element name: String) -> Element? {
-        for subnode in childNodes {
+        for subnode in node.children {
             if subnode.type() == pugi.node_element && String(cString: subnode.name()) == name {
                 return document.element(for: subnode)
             }
@@ -33,12 +34,10 @@ public extension Element {
     /// - Parameter name: The qualified name of the child elements to retrieve.
     /// - Returns: An array of child elements with the specified name.
     subscript(elements name: String) -> [Element] {
-        childNodes.compactMap { subnode in
-            if subnode.type() == pugi.node_element && String(cString: subnode.name()) == name {
-                return document.element(for: subnode)
-            } else {
-                return nil
-            }
+        node.children.lazy.filter {
+            $0.type() == pugi.node_element && String(cString: $0.name()) == name
+        }.map {
+            document.element(for: $0)
         }
     }
 
@@ -47,11 +46,10 @@ public extension Element {
     /// - Parameter targetName: The expanded name (including local name and optional namespace) of the elements to retrieve.
     /// - Returns: An array of child elements matching the expanded name.
     subscript(elements targetName: ExpandedName) -> [Element] {
-        let candidates = childNodes.filter {
-            $0.type() == pugi.node_element && String(cString: $0.name()).hasSuffix(targetName.localName)
-        }
-        return candidates.filter {
-            document.expandedName(for: $0) == targetName
+        return node.children.lazy.filter {
+            $0.type() == pugi.node_element
+            && String(cString: $0.name()).hasSuffix(targetName.localName)
+            && self.document.expandedName(for: $0) == targetName
         }.map { document.element(for: $0) }
     }
 
@@ -70,11 +68,15 @@ public extension Element {
     /// - Parameter targetName: The expanded name (including local name and optional namespace) of the element to retrieve.
     /// - Returns: The first child element matching the expanded name, or `nil` if no such element exists.
     subscript(element targetName: ExpandedName) -> Element? {
-        let match = childNodes.first(where: {
-            guard $0.type() == pugi.node_element && String(cString: $0.name()).hasSuffix(targetName.localName) else { return false }
-            return document.expandedName(for: $0) == targetName
-        })
-        return if let match { document.element(for: match) } else { nil }
+        if let match = node.children.first(where: {
+            $0.type() == pugi.node_element
+            && String(cString: $0.name()).hasSuffix(targetName.localName)
+            && document.expandedName(for: $0) == targetName
+        }) {
+            return document.element(for: match)
+        } else {
+            return nil
+        }
     }
 
     /// Retrieves the first child element with the specified local name and namespace URI.
@@ -89,37 +91,42 @@ public extension Element {
 }
 
 public extension Element {
-    /// Appends a new child element with the specified qualified name to this element.
+    /// Adds a new child element with the specified qualified name to this element at the given position.
     ///
-    /// - Parameter name: The qualified name of the new element.
+    /// - Parameters:
+    ///   - name: The qualified name of the new element.
+    ///   - position: The position where the new child element should be inserted. Defaults to `.last`, adding the element as the last child of this element.
     /// - Returns: The newly created child element.
     @discardableResult
-    func appendElement(_ name: String) -> Element {
-        let element = document.element(for: node.append_child(pugi.node_element))
+    func addElement(_ name: String, at position: Position = .last) -> Element {
+        let element = document.element(for: node.addChild(kind: pugi.node_element, at: position))
         element.name = name
         return element
     }
 
-    /// Appends a new child element with the specified expanded name to this element.
+    /// Adds a new child element with the specified expanded name to this element at the given position.
     ///
-    /// - Parameter name: The expanded name (including local name and optional namespace) of the new element.
+    /// - Parameters:
+    ///   - name: The expanded name of the new element, including the local name and an optional namespace.
+    ///   - position: The position where the new child element should be inserted. Defaults to `.last`, adding the element as the last child of this element.
     /// - Returns: The newly created child element.
     @discardableResult
-    func appendElement(_ name: ExpandedName) -> Element {
-        let child = appendElement("")
+    func addElement(_ name: ExpandedName, at position: Position = .last) -> Element {
+        let child = addElement("", at: position)
         child.expandedName = name
         return child
     }
 
-    /// Appends a new child element with the specified local name and optional namespace URI to this element.
+    /// Adds a new child element with the specified local name and optional namespace URI to this element at the given position.
     ///
     /// - Parameters:
     ///   - localName: The local name of the new element.
-    ///   - namespaceURI: The namespace URI of the new element. Defaults to `nil`.
+    ///   - namespaceName: The namespace name (URI) of the new element. Defaults to `nil` if the element does not belong to a namespace.
+    ///   - position: The position where the new child element should be inserted. Defaults to `.last`, adding the element as the last child of this element.
     /// - Returns: The newly created child element.
     @discardableResult
-    func appendElement(_ localName: String, namespace namespaceURI: String?) -> Element {
-        appendElement(ExpandedName(namespaceName: namespaceURI, localName: localName))
+    func addElement(_ localName: String, namespace namespaceName: String?, at position: Position = .last) -> Element {
+        addElement(ExpandedName(namespaceName: namespaceName, localName: localName), at: position)
     }
 
     /// Appends a new child element that declares a namespace, with the element itself being part of that namespace.
@@ -131,13 +138,13 @@ public extension Element {
     ///
     /// - Precondition: The expanded name must include a namespace URI.
     @discardableResult
-    func appendElement(_ name: ExpandedName, declaringNamespaceWith prefix: String?) -> Element {
+    func addElement(_ name: ExpandedName, declaringNamespaceWith prefix: String?, at position: Position = .last) -> Element {
         guard let uri = name.namespaceName else {
             preconditionFailure("You can't declare an empty namespace")
         }
-        let namespaces = [prefix: uri]
-        let element = appendElement(name.qualifiedElementName(using: namespaces))
+        let element = addElement("", at: position)
         element.declareNamespace(uri, forPrefix: prefix)
+        element.expandedName = name
         return element
     }
 }
