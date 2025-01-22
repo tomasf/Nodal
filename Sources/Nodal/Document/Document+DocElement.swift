@@ -12,22 +12,22 @@ internal extension Document {
 }
 
 public extension Document {
-    /// The root element of the document, or `nil` if the document does not have a root element.
+    /// The document (root) element of the document, or `nil` if the document does not have a document element.
     ///
-    /// - Note: The root element is the top-level element in the document tree.
+    /// - Note: The document element is the top-level element in the document tree.
     var documentElement: Element? {
         let root = pugiDocument.__document_elementUnsafe()
         return root.empty() ? nil : element(for: root)
     }
 
-    /// Creates a new root element for the document with the specified name and optional default namespace URI.
+    /// Creates a new document (root) element for the document with the specified name and optional default namespace URI.
     ///
     /// - Parameters:
-    ///   - name: The name of the new root element.
-    ///   - uri: The default namespace URI to associate with the root element. Defaults to `nil`.
-    /// - Returns: The newly created root element.
+    ///   - name: The name of the new document element.
+    ///   - uri: The default namespace URI to associate with the document element. Defaults to `nil`.
+    /// - Returns: The newly created element.
     ///
-    /// - Note: If the document already has a root element, it is removed before creating the new one.
+    /// - Note: If the document already has a document element, it is removed before creating the new one.
     func makeDocumentElement(name: String, defaultNamespace uri: String? = nil) -> Element {
         let element = clearDocumentElement()
         element.name = name
@@ -37,14 +37,14 @@ public extension Document {
         return element
     }
 
-    /// Creates a new root element for the document using an expanded name and declares a namespace for a prefix.
+    /// Creates a new document (root) element for the document using an expanded name and declares a namespace for a prefix.
     ///
     /// - Parameters:
-    ///   - name: The expanded name of the new root element, which includes a local name and an optional namespace.
-    ///   - prefix: The prefix to declare for the namespace associated with the root element.
-    /// - Returns: The newly created root element.
+    ///   - name: The expanded name of the new document element, which includes a local name and an optional namespace.
+    ///   - prefix: The prefix to declare for the namespace associated with the document element.
+    /// - Returns: The newly created element.
     ///
-    /// - Note: If the document already has a root element, it is removed before creating the new one.
+    /// - Note: If the document already has a document element, it is removed before creating the new one.
     func makeDocumentElement(name: ExpandedName, declaringNamespaceFor prefix: String) -> Element {
         let element = clearDocumentElement()
         if let uri = name.namespaceName {

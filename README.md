@@ -31,7 +31,7 @@ Then, include Nodal in the target dependencies and make sure to enable C++ inter
 ```swift
 let document = Document()
 let root = document.makeDocumentElement(name: "content", defaultNamespace: "http://tomasf.se/xml/example")
-let entry = root.appendElement("entry")
+let entry = root.addElement("entry")
 entry[attribute: "key"] = "price"
 entry.appendText("499")
 let output = try document.xmlData()
@@ -59,7 +59,7 @@ XPath is a language for querying and selecting nodes from an XML document. It al
 
 ### Example Usage
 ```swift
-let document = try Document(xmlString: """
+let document = try Document(string: """
 <catalog>
   <book id="bk101">
     <title>XML Developer's Guide</title>
@@ -70,12 +70,12 @@ let document = try Document(xmlString: """
 </catalog>
 """)
 
-if let name = query.firstNodeResult(with: document)?.node?.concatenatedText {
+if let name = query.firstNodeResult(with: document)?.node?.textContent {
     print("Book name:", name) // Outputs "XML Developer's Guide"
 }
 ```
 
-While Nodal supports XML namespaces when working with the DOM, its XPath implementation does not support XML namespaces. This limitation arises from pugixml, which lacks namespace support. To work with elements and attributes in documents that use namespaces, you must use their qualified names in your XPath expressions.
+While Nodal supports XML namespaces when working with the DOM, its XPath implementation does not support namespaces. This limitation arises from pugixml. To work with elements and attributes in documents that use namespaces, you must use their qualified names in your XPath expressions.
 
 ## Contributions
 
@@ -83,4 +83,4 @@ Contributions are welcome! If you have ideas, suggestions, or improvements, feel
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License, and so is pugixml. See the respective LICENSE files for details.

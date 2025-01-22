@@ -163,6 +163,5 @@ struct Tests {
         #expect(Array(root.children) == [b, a], "Order of children")
         let c = root.addCDATA("c", at: .after(b))
         #expect(Array(root.children) == [b, c, a], "Order of children")
-
     }
 }

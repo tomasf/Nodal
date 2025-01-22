@@ -130,6 +130,17 @@ public extension Node {
             node.set_value(newValue)
         }
     }
+
+    /// The offset of this node from the beginning of the original XML buffer, if available.
+    ///
+    /// This property provides the offset in characters from the start of the XML data used to parse the document.
+    /// The offset is only available if he node was parsed from a stream or buffer and has not undergone significant changes since parsing.
+    ///
+    /// - Returns: The character offset from the beginning of the XML buffer, or `nil` if unavailable.
+    var sourceOffset: Int? {
+        let offset = node.offset_debug()
+        return offset == -1 ? nil : offset
+    }
 }
 
 internal extension Node {
@@ -151,7 +162,7 @@ extension Node: CustomDebugStringConvertible {
         case .text: "Text \"\(value)\""
         case .cdata: "CDATA \"\(value)\""
         case .comment: "Comment <!--\(value)-->"
-        case .doctype: "DOCTYPE <!DOCTYPE \(value)>"
+        case .doctype: "Document type declaration <!DOCTYPE \(value)>"
         case .processingInstruction: "PI <?\(name) \(value)?>"
         case .declaration: "Declaration <?\(name)...?>"
         case .document: "Document"

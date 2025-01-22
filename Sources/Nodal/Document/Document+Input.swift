@@ -46,9 +46,9 @@ public extension Document {
     /// - Throws: `ParseError` if the parsing fails due to malformed XML, file access issues, or other errors.
     ///
     /// - Note: This initializer reads the file from the provided URL and builds the corresponding document tree.
-    convenience init(url: URL, encoding: String.Encoding? = nil, options: ParseOptions = .default) throws(ParseError) {
+    convenience init(url fileURL: URL, encoding: String.Encoding? = nil, options: ParseOptions = .default) throws(ParseError) {
         self.init()
-        let result = url.withUnsafeFileSystemRepresentation { path in
+        let result = fileURL.withUnsafeFileSystemRepresentation { path in
             pugiDocument.load_file(path, options.rawValue, encoding?.pugiEncoding ?? pugi.encoding_auto)
         }
         if result.status != pugi.status_ok {
