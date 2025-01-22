@@ -57,8 +57,8 @@ public class Node {
         }
     }
 
-    func declaredNamespacesDidChange() {}
-    var hasNamespaceDeclarations: Bool { false }
+    internal func declaredNamespacesDidChange() {}
+    internal var hasNamespaceDeclarations: Bool { false }
 
     /// The document that owns this node.
     ///
@@ -151,7 +151,7 @@ extension Node: CustomDebugStringConvertible {
         case .text: "Text \"\(value)\""
         case .cdata: "CDATA \"\(value)\""
         case .comment: "Comment <!--\(value)-->"
-        case .doctype: "<!DOCTYPE \(value)>"
+        case .doctype: "DOCTYPE <!DOCTYPE \(value)>"
         case .processingInstruction: "PI <?\(name) \(value)?>"
         case .declaration: "Declaration <?\(name)...?>"
         case .document: "Document"

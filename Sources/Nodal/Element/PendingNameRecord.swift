@@ -16,6 +16,15 @@ internal class PendingNameRecord {
         }
     }
 
+    func updateAncestors(with element: Element) {
+        ancestors = []
+        var node = element.node
+        while !node.empty() {
+            ancestors.insert(node)
+            node = node.parent()
+        }
+    }
+
     func belongsToTree(_ node: Node) -> Bool {
         ancestors.contains(node.node)
     }

@@ -35,4 +35,17 @@ internal extension pugi.xml_node {
         case .last: append_child(kind)
         }
     }
+
+    mutating func insertChild(_ child: pugi.xml_node, at childPosition: Node.Position) -> pugi.xml_node {
+        guard childPosition.validate(for: self) else {
+            fatalError("Peer node for Node.Position must be a valid child of the parent")
+        }
+
+        return switch childPosition {
+        case .first: prepend_move(child)
+        case .before (let other): insert_move_before(child, other.node)
+        case .after (let other): insert_move_after(child, other.node)
+        case .last: append_move(child)
+        }
+    }
 }

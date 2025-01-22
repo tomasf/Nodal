@@ -42,7 +42,7 @@ internal extension Document {
         for key in keys { pendingNamespaceRecords[key] = nil }
     }
 
-    func pendingNameRecords(forDescendantsOf parent: Element) -> [(Element, PendingNameRecord)] {
+    func pendingNameRecords(forDescendantsOf parent: Node) -> [(Element, PendingNameRecord)] {
         pendingNamespaceRecords.compactMap {
             $1.belongsToTree(parent) ? (element(for: .init($0)), $1) : nil
         }

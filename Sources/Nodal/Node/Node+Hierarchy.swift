@@ -100,6 +100,32 @@ public extension Node {
 }
 
 public extension Node {
+    /// Moves this node to a new parent node at the specified position within the parent's children.
+    ///
+    /// - Parameters:
+    ///   - parent: The new parent node to which this node should be moved.
+    ///   - position: The position within the parent's children where this node should be inserted. Defaults to `.last`, adding the node as the last child of the parent.
+    /// - Returns: A Boolean value indicating whether the move was successful.
+    ///            Returns `false` if the node cannot be moved. Examples of such cases include:
+    ///            - The new parent node belongs to a different document.
+    ///            - The node is being moved to within itself, which would create an invalid structure.
+    @discardableResult
+    func move(to parent: Node, at position: Position = .last) -> Bool {
+        let records = document.pendingNameRecords(forDescendantsOf: self)
+        var destination = parent.node
+
+        if destination.insertChild(self.node, at: position).empty() {
+            return false
+        }
+
+        for (element, record) in records {
+            record.updateAncestors(with: element)
+        }
+        return true
+    }
+}
+
+public extension Node {
     /// Adds a new comment with the specified content to this node at the given position.
     ///
     /// - Parameters:

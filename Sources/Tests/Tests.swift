@@ -87,7 +87,7 @@ struct Tests {
     }
 
     @Test
-    func testInvalidation() throws {
+    func invalidation() throws {
         let doc = Document()
         let root = doc.makeDocumentElement(name: "root")
         let a = root.addElement("a")
@@ -135,20 +135,34 @@ struct Tests {
     }
 
     @Test
-    func lab() throws {
-        let doc = try Document(string: """
-        <root>
-            foo
-            <a>
-                bar
-                <b>baz<!--comment--><![CDATA[zoing]]>biz</b>
-                doz
-            </a>
-        </root>
-""", options: [.default, .trimTextWhitespace])
+    func move() throws {
+        let doc = Document()
+        let root = doc.makeDocumentElement(name: "root")
+        let a = root.addElement("a")
+        let b = root.addElement("b")
+        let c = a.addComment("hello")
 
-        for node in doc.descendants {
-            print("Found \(node)!")
-        }
+        #expect(c.move(to: a) == true, "Successful move")
+        #expect(Array(a.children) == [c], "Destination has target")
+        #expect(a.move(to: b) == true, "Successful move with children")
+        #expect(c.parent?.parent == b, "Grandparent is correct")
+
+        let doc2 = Document()
+        let root2 = doc2.makeDocumentElement(name: "root2")
+        #expect(c.move(to: root2) == false, "Move between documents")
+        #expect(c.move(to: c) == false, "Move to itself")
+    }
+
+    @Test
+    func addAt() throws {
+        let doc = Document()
+        let root = doc.makeDocumentElement(name: "root")
+        let a = root.addElement("a")
+        let b = root.addElement("b", at: .first)
+
+        #expect(Array(root.children) == [b, a], "Order of children")
+        let c = root.addCDATA("c", at: .after(b))
+        #expect(Array(root.children) == [b, c, a], "Order of children")
+
     }
 }
