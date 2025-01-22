@@ -23,7 +23,8 @@ Then, include Nodal in the target dependencies and make sure to enable C++ inter
     name: "YourTargetName",
     dependencies: ["Nodal"],
     swiftSettings: [.interoperabilityMode(.Cxx)] // Nodal requires C++ interop
-)```
+)
+```
 
 ## Usage
 
