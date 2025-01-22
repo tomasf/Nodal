@@ -37,12 +37,20 @@ entry.appendText("499")
 let output = try document.xmlData()
 ```
 
+## Nodes
+
+Nodal represents an XML document as a DOM (Document Object Model), which is a tree of nodes. Each node in the tree represents an element, text, comment, or other structural component of the XML document.
+
+Nodes are tightly bound to the tree they belong to. Nodes cannot exist outside of a document; you cannot create a freestanding node and later add it. Instead, you create new nodes directly as children of an existing parent node.  When a node is removed, it is immediately invalidated and cannot be reused or re-added elsewhere. Nodes can, however, be moved to a new position within the same document.
+
+Unlike elements, attributes in Nodal are not represented as nodes. Instead, attributes are accessed and manipulated directly on elements. You retrieve and set the value of attributes by their names (qualified or expanded).
+
 ## Namespaces
 
 Nodal has support for namespaces for elements and attributes. This means you can assign expanded names (namespace URI + local name) to them and the corresponding qualified name will be set for you.
 
 ```swift
-element.appendElement("weight", namespace: "http://tomasf.se/xml/example")
+element.addElement("weight", namespace: "http://tomasf.se/xml/example")
 ```
 
 This presumes the namespace has been declared and assigned a prefix in that element or one of its ancestors. If not, Nodal will use a temporary qualified name and fill the final one in once you’ve declared the namespace. Attempting to generate XML for a document with unresolved namespaces throws an error.
