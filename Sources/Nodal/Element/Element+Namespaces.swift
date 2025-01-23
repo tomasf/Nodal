@@ -78,8 +78,8 @@ public extension Element {
     ///            and the values are the corresponding namespace names (URIs).
     var namespacesInScope: NamespaceBindings {
         var namespaces = explicitNamespacesInScope
-        namespaces[pugi.xml_node.xmlNamespacePrefix] = pugi.xml_node.xmlNamespaceName
-        namespaces[pugi.xml_node.nsNamespacePrefix] = pugi.xml_node.nsNamespaceName
+        namespaces[pugi.xml_node.xmlNamespace.prefix] = pugi.xml_node.xmlNamespace.name
+        namespaces[pugi.xml_node.xmlnsNamespace.prefix] = pugi.xml_node.xmlnsNamespace.name
         return namespaces
     }
 

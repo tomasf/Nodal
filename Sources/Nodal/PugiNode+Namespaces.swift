@@ -2,14 +2,13 @@ import Foundation
 import pugixml
 
 internal extension pugi.xml_node {
-    static let xmlNamespaceName = "http://www.w3.org/XML/1998/namespace"
-    static let xmlNamespacePrefix = "xml"
-    static let nsNamespaceName = "http://www.w3.org/2000/xmlns/"
-    static let nsNamespacePrefix = "xmlns"
+    static let xmlNamespace = (prefix: "xml", name: "http://www.w3.org/XML/1998/namespace")
+    static let xmlnsNamespace = (prefix: "xmlns", name: "http://www.w3.org/2000/xmlns/")
+
 
     func namespaceName(for prefix: String?) -> String? {
-        if prefix == Self.xmlNamespacePrefix { return Self.xmlNamespaceName }
-        if prefix == Self.nsNamespacePrefix { return Self.nsNamespaceName }
+        if prefix == Self.xmlNamespace.prefix { return Self.xmlNamespace.name }
+        if prefix == Self.xmlnsNamespace.prefix { return Self.xmlnsNamespace.name }
 
         let targetAttributeName = if let prefix { "xmlns:" + prefix } else { "xmlns" }
 
@@ -22,8 +21,8 @@ internal extension pugi.xml_node {
     }
 
     func nonDefaultPrefix(for namespaceName: String) -> String? {
-        if namespaceName == Self.xmlNamespaceName { return Self.xmlNamespacePrefix }
-        if namespaceName == Self.nsNamespaceName { return Self.nsNamespacePrefix }
+        if namespaceName == Self.xmlNamespace.name { return Self.xmlNamespace.prefix }
+        if namespaceName == Self.xmlnsNamespace.name { return Self.xmlnsNamespace.prefix }
 
         for attribute in ancestorAttributes {
             let name = String(cString: attribute.name())
@@ -35,8 +34,8 @@ internal extension pugi.xml_node {
     }
 
     func prefix(for namespaceName: String) -> String? {
-        if namespaceName == Self.xmlNamespaceName { return Self.xmlNamespacePrefix }
-        if namespaceName == Self.nsNamespaceName { return Self.nsNamespacePrefix }
+        if namespaceName == Self.xmlNamespace.name { return Self.xmlNamespace.prefix }
+        if namespaceName == Self.xmlnsNamespace.name { return Self.xmlnsNamespace.prefix }
 
         for attribute in ancestorAttributes {
             let name = String(cString: attribute.name())
