@@ -55,11 +55,4 @@ public extension Document {
             throw ParseError(result)
         }
     }
-
-    /// Creates a new, empty XML document.
-    ///
-    /// - Note: This initializer creates a document with no content. Elements can be added manually using the API.
-    convenience init() {
-        self.init(owningDocument: nil, node: .init())
-    }
 }

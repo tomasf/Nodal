@@ -7,8 +7,11 @@ public class Document: Node {
     internal var pugiDocument = pugi.xml_document()
     internal var pendingNamespaceRecords: [OpaquePointer: PendingNameRecord] = [:]
 
-    internal required init(owningDocument: Document?, node: pugi.xml_node) {
-        super.init(owningDocument: nil, node: pugiDocument.asNode)
+    /// Creates a new, empty XML document.
+    ///
+    /// - Note: This initializer creates a document with no content. Elements can be added manually using the API.
+    public init() {
+        super.init(owningDocument: nil, node: .init())
     }
 
     public override var document: Document {

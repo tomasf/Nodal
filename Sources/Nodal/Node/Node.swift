@@ -12,7 +12,7 @@ public class Node {
     internal var node: pugi.xml_node
     private var notificationToken: Any?
 
-    internal required init(owningDocument: Document?, node: pugi.xml_node) {
+    internal init(owningDocument: Document?, node: pugi.xml_node) {
         self.owningDocument = owningDocument
         self.node = node
 
