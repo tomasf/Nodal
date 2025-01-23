@@ -100,13 +100,6 @@ public extension Element {
         name.qNamePrefix
     }
 
-    /// The namespace name (URI) associated with this element's prefix.
-    ///
-    /// - Returns: The namespace URI for the prefix, or `nil` if the prefix is not bound to a namespace.
-    var namespaceName: String? {
-        namespaceName(for: prefix)
-    }
-
     /// The expanded name of this element, including its namespace name (URI) and local name.
     ///
     /// - Returns: An `ExpandedName` containing the local name and namespace name.
