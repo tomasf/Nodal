@@ -16,8 +16,7 @@ public extension Document {
     ///
     /// - Note: The document element is the top-level element in the document tree.
     var documentElement: Element? {
-        let root = pugiDocument.__document_elementUnsafe()
-        return root.empty() ? nil : element(for: root)
+        pugiDocument.documentElement.nonNull.map { element(for: $0) }
     }
 
     /// Creates a new document (root) element for the document with the specified name and optional default namespace URI.

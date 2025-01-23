@@ -14,6 +14,7 @@ extension pugi.xml_node: Hashable {
 
 internal extension pugi.xml_document {
     var asNode: pugi.xml_node { xml_document_as_node(self) }
+    var documentElement: pugi.xml_node { __document_elementUnsafe() }
 }
 
 internal extension pugi.xpath_node_set {
