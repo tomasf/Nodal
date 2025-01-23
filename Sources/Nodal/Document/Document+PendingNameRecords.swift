@@ -15,7 +15,7 @@ internal extension Document {
         }
 
         return ExpandedName(
-            namespaceName: elementNode.namespaceName(for: qName.qNamePrefix),
+            namespaceName: namespaceName(forPrefix: .init(qName.qNamePrefix), in: elementNode),
             localName: qName.qNameLocalName
         )
     }

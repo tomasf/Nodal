@@ -6,6 +6,7 @@ internal extension Document {
         if let oldRoot = documentElement {
             removeChild(oldRoot)
         }
+        resetNamespaceDeclarationCache()
         let rootNode = pugiDocument.append_child(pugi.node_element)
         return element(for: rootNode)
     }
@@ -27,6 +28,7 @@ public extension Document {
     /// - Returns: The newly created element.
     ///
     /// - Note: If the document already has a document element, it is removed before creating the new one.
+    @discardableResult
     func makeDocumentElement(name: String, defaultNamespace uri: String? = nil) -> Element {
         let element = clearDocumentElement()
         element.name = name
@@ -44,6 +46,7 @@ public extension Document {
     /// - Returns: The newly created element.
     ///
     /// - Note: If the document already has a document element, it is removed before creating the new one.
+    @discardableResult
     func makeDocumentElement(name: ExpandedName, declaringNamespaceFor prefix: String) -> Element {
         let element = clearDocumentElement()
         if let uri = name.namespaceName {

@@ -10,20 +10,24 @@ internal extension ExpandedName {
             return
         }
 
-        let namespaceName = element.namespaceName(for: qName.qNamePrefix)
-        self.init(namespaceName: namespaceName, localName: qName.qNameLocalName)
+        if let prefix = qName.qNamePrefix {
+            let namespaceName = element.namespaceName(forPrefix: .named(prefix))
+            self.init(namespaceName: namespaceName, localName: qName.qNameLocalName)
+        } else {
+            self.init(namespaceName: nil, localName: qName)
+        }
     }
 
     func requestQualifiedElementName(for element: Element) -> String {
         let prefix: String?
         if let namespaceName {
-            if let match = element.prefix(for: namespaceName) {
-                prefix = match == "" ? nil : match
+            if let match = element.namespacePrefix(forName: namespaceName) {
+                prefix = match.string
             } else {
                 prefix = element.requirePendingNameRecord().addUnresolvedElementName(self, for: element)
             }
         } else {
-            guard element.namespaceName(for: nil) == nil else {
+            guard element.namespaceName(forPrefix: .defaultNamespace) == nil else {
                 fatalError("Can't use a nil namespace when there's a default namespace in scope")
             }
             prefix = nil
@@ -38,9 +42,12 @@ internal extension ExpandedName {
         }
 
         // Reminder: Attributes in a namespace MUST have a prefix. An attribute can not belong to a namespace that is only declared as default
-        guard let prefix = element.prefix(for: namespaceName), prefix != "" else {
+
+        guard let prefix = element.namespacePrefix(forName: namespaceName),
+              let prefixString = prefix.string
+        else {
             return element.requirePendingNameRecord().addUnresolvedAttribute(self, in: element)
         }
-        return String(prefix: prefix, localPart: localName)
+        return String(prefix: prefixString, localPart: localName)
     }
 }

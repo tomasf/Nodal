@@ -7,9 +7,9 @@ import pugixml
 ///         child nodes, and text content. It extends the `Node` class, inheriting its methods and properties.
 public class Element: Node {
     internal override func declaredNamespacesDidChange() {
-        let namespaces = declaredNamespaces
+        document.rebuildNamespaceDeclarationCache(for: self)
         for (element, record) in document.pendingNameRecords(forDescendantsOf: self) {
-            if record.attemptResolution(for: element, with: namespaces) {
+            if record.attemptResolution(for: element) {
                 document.removePendingNameRecord(for: element)
             }
         }

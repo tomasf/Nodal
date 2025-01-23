@@ -3,6 +3,78 @@ import Testing
 
 struct Tests {
     @Test
+    func namespaceDeclarationCache() {
+        let doc = Document()
+        let root = doc.makeDocumentElement(name: "root")
+        let a = root.addElement("a")
+
+        root.declareNamespace("uri-foo", forPrefix: "foo")
+        #expect(doc.namespaceDeclarationCount(for: root) == 1)
+        #expect(a.namespaceName(forPrefix: .named("foo")) == "uri-foo")
+
+        a.declareNamespace("uri-bar", forPrefix: "foo")
+        #expect(doc.namespaceDeclarationCount(for: a) == 1)
+        #expect(doc.namespaceDeclarationCount() == 2)
+        #expect(a.namespaceName(forPrefix: .named("foo")) == "uri-bar")
+
+        doc.makeDocumentElement(name: "cleared")
+        #expect(doc.namespaceDeclarationCount() == 0)
+    }
+
+    @Test
+    func namespaceDeclarationCacheLoaded() throws {
+        let doc = try Document(string: """
+        <root xmlns="default">
+            <a xmlns="default2" xmlns:foo="foouri">
+                <b/><foo:c/>
+            </a>
+        </root>
+        """)
+
+        #expect(doc.namespaceDeclarationCount() == 3)
+        #expect(doc.documentElement?.expandedName.namespaceName == "default")
+
+        let a = try XPathQuery("/root/a").firstNodeResult(with: doc)?.node as? Element
+        #expect(a?.expandedName.namespaceName == "default2")
+
+        let b = a?[element: "b"]
+        #expect(b?.expandedName.namespaceName == "default2")
+
+        let c = try XPathQuery("foo:c").firstNodeResult(with: a!)?.node as? Element
+        #expect(c?.expandedName.namespaceName == "foouri")
+    }
+
+    @Test
+    func namespaceShadowing() {
+        let doc = Document()
+        let root = doc.makeDocumentElement(name: "root")
+        let sub = root.addElement("sub")
+        root.declareNamespace("foo", forPrefix: "a")
+        sub.declareNamespace("bar", forPrefix: "a")
+
+        // Sub now shadows the a prefix, preventing its children from referencing the URI "foo"
+        #expect(sub.namespacePrefix(forName: "foo") == nil)
+        #expect(sub.namespaceName(forPrefix: .named("a")) == "bar")
+
+        // Foo should still be visible at root
+        #expect(root.namespacePrefix(forName: "foo") == .named("a"))
+
+        // Because foo isn't visible, trying to use it will register a pending record
+        #expect(doc.pendingNameRecordCount == 0)
+        let child = sub.addElement("baz", namespace: "foo")
+        #expect(doc.pendingNameRecordCount == 1)
+
+        // Unrelated. No change.
+        root.declareNamespace("fraz", forPrefix: "c")
+        #expect(doc.pendingNameRecordCount == 1)
+
+        // Until we add a visible prefix for foo
+        root.declareNamespace("foo", forPrefix: "b")
+        #expect(doc.pendingNameRecordCount == 0)
+        #expect(child.name == "b:baz")
+    }
+
+    @Test
     func deferredNamespaceResolution() {
         let document = Document()
         let root = document.makeDocumentElement(name: "root")

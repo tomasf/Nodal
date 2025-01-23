@@ -12,10 +12,7 @@ public extension Document {
     /// - Note: This initializer parses the entire string and builds the corresponding document tree.
     convenience init(string: String, options: ParseOptions = .default) throws(ParseError) {
         self.init()
-        let result = pugiDocument.load_string(string, options.rawValue)
-        if result.status != pugi.status_ok {
-            throw ParseError(result)
-        }
+        try finishSetup(withResult: pugiDocument.load_string(string, options.rawValue))
     }
 
     /// Creates an XML document by parsing the given data.
@@ -29,12 +26,9 @@ public extension Document {
     /// - Note: This initializer parses the data and builds the corresponding document tree.
     convenience init(data: Data, encoding: String.Encoding? = nil, options: ParseOptions = .default) throws(ParseError) {
         self.init()
-        let result = data.withUnsafeBytes { bufferPointer in
+        try finishSetup(withResult: data.withUnsafeBytes { bufferPointer in
             pugiDocument.load_buffer(bufferPointer.baseAddress, bufferPointer.count, options.rawValue, encoding?.pugiEncoding ?? pugi.encoding_auto)
-        }
-        if result.status != pugi.status_ok {
-            throw ParseError(result)
-        }
+        })
     }
 
     /// Creates an XML document by loading and parsing the content of a file at the specified URL.
@@ -48,11 +42,17 @@ public extension Document {
     /// - Note: This initializer reads the file from the provided URL and builds the corresponding document tree.
     convenience init(url fileURL: URL, encoding: String.Encoding? = nil, options: ParseOptions = .default) throws(ParseError) {
         self.init()
-        let result = fileURL.withUnsafeFileSystemRepresentation { path in
+        try finishSetup(withResult: fileURL.withUnsafeFileSystemRepresentation { path in
             pugiDocument.load_file(path, options.rawValue, encoding?.pugiEncoding ?? pugi.encoding_auto)
+        })
+    }
+}
+
+internal extension Document {
+    func finishSetup(withResult parseResult: pugi.xml_parse_result) throws(ParseError) {
+        if parseResult.status != pugi.status_ok {
+            throw ParseError(parseResult)
         }
-        if result.status != pugi.status_ok {
-            throw ParseError(result)
-        }
+        rebuildNamespaceDeclarationCache()
     }
 }

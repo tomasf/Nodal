@@ -33,7 +33,7 @@ internal extension ExpandedName {
         }
 
         // Attributes in a namespace MUST have a prefix. An attribute can not belong to a namespace that is only declared as default
-        guard let prefix = element.nonDefaultPrefix(for: namespaceName) else {
+        guard let prefix = element.namespacePrefix(forName: namespaceName)?.string else {
             return nil
         }
         return String(prefix: prefix, localPart: localName)

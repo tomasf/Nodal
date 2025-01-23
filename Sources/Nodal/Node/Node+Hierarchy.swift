@@ -83,6 +83,7 @@ public extension Node {
     /// - Parameter child: The child node to remove.
     func removeChild(_ child: Node) {
         if let element = child as? Element {
+            document.removeNamespaceDeclarations(for: child.node)
             document.removePendingNameRecords(withinTree: element)
             document.sendNodeDeletionNotification(for: [element.node])
         }
@@ -92,6 +93,7 @@ public extension Node {
     /// Removes all child nodes from this node.
     func removeAllChildren() {
         if let element = self as? Element {
+            document.removeNamespaceDeclarations(for: element.node, excludingTarget: true)
             document.removePendingNameRecords(withinTree: element, excludingTarget: true)
             document.sendNodeDeletionNotification(for: Set(children.map(\.node)))
         }

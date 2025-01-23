@@ -6,12 +6,14 @@ import Bridge
 public class Document: Node {
     internal var pugiDocument = pugi.xml_document()
     internal var pendingNamespaceRecords: [OpaquePointer: PendingNameRecord] = [:]
+    internal var namespaceDeclarationsByPrefix: [NamespaceDeclaration.Prefix: [NamespaceDeclaration]] = [:]
+    internal var namespaceDeclarationsByName: [String: [NamespaceDeclaration]] = [:]
 
     /// Creates a new, empty XML document.
     ///
     /// - Note: This initializer creates a document with no content. Elements can be added manually using the API.
     public init() {
-        super.init(owningDocument: nil, node: .init())
+        super.init(owningDocument: nil, node: self.pugiDocument.asNode)
     }
 
     public override var document: Document {

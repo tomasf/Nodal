@@ -13,20 +13,12 @@ internal extension Element {
         return document.addPendingNameRecord(for: self)
     }
 
-    var explicitNamespacesInScope: NamespaceBindings {
-        node.explicitNamespacesInScope
+    func namespacePrefix(forName namespaceName: String) -> Document.Prefix? {
+        document.namespacePrefix(forName: namespaceName, in: node)
     }
 
-    func prefix(for namespaceName: String) -> String? {
-        node.prefix(for: namespaceName)
-    }
-
-    func nonDefaultPrefix(for namespaceName: String) -> String? {
-        node.nonDefaultPrefix(for: namespaceName)
-    }
-
-    func namespaceName(for prefix: String?) -> String? {
-        node.namespaceName(for: prefix)
+    func namespaceName(forPrefix prefix: Document.Prefix) -> String? {
+        document.namespaceName(forPrefix: prefix, in: node)
     }
 }
 
@@ -49,7 +41,7 @@ public extension Element {
     ///            and the values are the corresponding namespace names (URIs).
     ///
     /// - Note: Setting this property updates the `xmlns` attributes on the element.
-    var declaredNamespaces: NamespaceBindings {
+    var declaredNamespaces: [String?: String] {
         get {
             Dictionary(attributes.compactMap {
                 if $0.name == "xmlns" {
@@ -76,10 +68,10 @@ public extension Element {
     ///
     /// - Returns: A dictionary where the keys are namespace prefixes (or `nil` for the default namespace),
     ///            and the values are the corresponding namespace names (URIs).
-    var namespacesInScope: NamespaceBindings {
-        var namespaces = explicitNamespacesInScope
-        namespaces[pugi.xml_node.xmlNamespace.prefix] = pugi.xml_node.xmlNamespace.name
-        namespaces[pugi.xml_node.xmlnsNamespace.prefix] = pugi.xml_node.xmlnsNamespace.name
+    var namespacesInScope: [String?: String] {
+        var namespaces = node.explicitNamespacesInScope
+        namespaces[Document.xmlNamespace.prefix.string] = Document.xmlNamespace.name
+        namespaces[Document.xmlnsNamespace.prefix.string] = Document.xmlnsNamespace.name
         return namespaces
     }
 
@@ -87,7 +79,7 @@ public extension Element {
     ///
     /// - Returns: The URI associated with the default namespace (`xmlns`) in this scope, or `nil` if no default namespace is declared.
     var defaultNamespaceName: String? {
-        namespaceName(for: nil)
+        namespaceName(forPrefix: .defaultNamespace)
     }
 
     /// The local name of this element's qualified name, excluding any prefix.

@@ -74,13 +74,12 @@ internal class PendingNameRecord {
     }
 
     // Returns true if the element is now completely resolved and the record can be removed
-    func attemptResolution(for element: Element, with namespaceBindings: NamespaceBindings) -> Bool {
-        let namespaces = namespaceBindings.nameToPrefixMapping
+    func attemptResolution(for element: Element) -> Bool {
         if let elementName,
            let namespaceName = elementName.namespaceName,
-           let prefix = namespaces[namespaceName]
+           let prefix = element.namespacePrefix(forName: namespaceName)
         {
-            element.name = String(prefix: prefix, localPart: elementName.localName)
+            element.name = String(prefix: prefix.string, localPart: elementName.localName)
             self.elementName = nil
         }
 
@@ -89,12 +88,12 @@ internal class PendingNameRecord {
                 return false // The pending attribute is gone? Problem solved, I guess.
             }
 
-            guard let namespaceName = name.namespaceName, let prefix = namespaces[namespaceName] else {
+            guard let namespaceName = name.namespaceName, let prefix = element.namespacePrefix(forName: namespaceName) else {
                 return true // Not resolved. Keep the unresolved attribute record
             }
 
             element[attribute: qName] = nil
-            element[attribute: String(prefix: prefix, localPart: name.localName)] = value
+            element[attribute: String(prefix: prefix.string, localPart: name.localName)] = value
             return false // Resolved! Remove attribute record.
         }
 
