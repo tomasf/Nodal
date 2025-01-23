@@ -28,7 +28,7 @@ internal extension Document {
     // for that to work, so we use this as a workaround.
     static let documentUserInfoKey = "Nodal.Document"
 
-    func sendNoteDeletionNotification(for nodes: Set<pugi.xml_node>) {
+    func sendNodeDeletionNotification(for nodes: Set<pugi.xml_node>) {
         NotificationCenter.default.post(name: .documentDidDeleteNodes, object: self, userInfo: [
             Self.deletedNodesUserInfoKey: nodes,
             Self.documentUserInfoKey: self

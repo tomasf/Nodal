@@ -84,7 +84,7 @@ public extension Node {
     func removeChild(_ child: Node) {
         if let element = child as? Element {
             document.removePendingNameRecords(withinTree: element)
-            document.sendNoteDeletionNotification(for: [element.node])
+            document.sendNodeDeletionNotification(for: [element.node])
         }
         node.remove_child(child.node)
     }
@@ -93,7 +93,7 @@ public extension Node {
     func removeAllChildren() {
         if let element = self as? Element {
             document.removePendingNameRecords(withinTree: element, excludingTarget: true)
-            document.sendNoteDeletionNotification(for: Set(children.map(\.node)))
+            document.sendNodeDeletionNotification(for: Set(children.map(\.node)))
         }
         node.remove_children()
     }
