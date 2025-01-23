@@ -13,7 +13,11 @@ public extension Node {
     ///
     /// - Note: This method clears all attributes associated with the node, including an element's namespace declarations.
     func removeAllAttributes() {
+        let didTouchNamespaces = hasNamespaceDeclarations
         node.remove_attributes()
+        if didTouchNamespaces {
+            declaredNamespacesDidChange()
+        }
     }
 
     /// The attributes of the node, represented as an array of name-value pairs.
