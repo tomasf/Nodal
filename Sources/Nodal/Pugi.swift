@@ -12,6 +12,12 @@ extension pugi.xml_node: Hashable {
     }
 }
 
+extension pugi.xml_attribute {
+    var nonNull: pugi.xml_attribute? {
+        empty() ? nil : self
+    }
+}
+
 internal extension pugi.xml_document {
     var asNode: pugi.xml_node { xml_document_as_node(self) }
     var documentElement: pugi.xml_node {

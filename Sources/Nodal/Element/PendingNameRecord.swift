@@ -16,9 +16,9 @@ internal class PendingNameRecord {
         }
     }
 
-    func updateAncestors(with element: Element) {
+    func updateAncestors(with element: pugi.xml_node) {
         ancestors = []
-        var node = element.node
+        var node = element
         while !node.empty() {
             ancestors.insert(node)
             node = node.parent()
@@ -74,26 +74,29 @@ internal class PendingNameRecord {
     }
 
     // Returns true if the element is now completely resolved and the record can be removed
-    func attemptResolution(for element: Element) -> Bool {
+    func attemptResolution(for element: pugi.xml_node, in document: Document) -> Bool {
         if let elementName,
            let namespaceName = elementName.namespaceName,
-           let prefix = element.namespacePrefix(forName: namespaceName)
+           let prefix = document.namespacePrefix(forName: namespaceName, in: element)
         {
-            element.name = String(prefix: prefix.string, localPart: elementName.localName)
+            var element = element
+            element.set_name(String(prefix: prefix.string, localPart: elementName.localName))
             self.elementName = nil
         }
 
         attributes = attributes.filter { name, qName in
-            guard let value = element[attribute: qName] else {
+            guard var attribute = element.attribute(qName).nonNull else {
                 return false // The pending attribute is gone? Problem solved, I guess.
             }
 
-            guard let namespaceName = name.namespaceName, let prefix = element.namespacePrefix(forName: namespaceName) else {
+            guard let namespaceName = name.namespaceName,
+                  let prefix = document.namespacePrefix(forName: namespaceName, in: element)
+            else {
                 return true // Not resolved. Keep the unresolved attribute record
             }
 
-            element[attribute: qName] = nil
-            element[attribute: String(prefix: prefix.string, localPart: name.localName)] = value
+            let newQName = String(prefix: prefix.string, localPart: name.localName)
+            attribute.set_name(newQName)
             return false // Resolved! Remove attribute record.
         }
 

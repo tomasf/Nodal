@@ -26,8 +26,8 @@ internal extension Document {
         return record
     }
 
-    func removePendingNameRecord(for element: Element) {
-        pendingNamespaceRecords[element.nodePointer] = nil
+    func removePendingNameRecord(for element: pugi.xml_node) {
+        pendingNamespaceRecords[element.internal_object()] = nil
     }
 
     func removePendingNameRecords(withinTree ancestor: Element, excludingTarget: Bool = false) {
@@ -42,9 +42,9 @@ internal extension Document {
         for key in keys { pendingNamespaceRecords[key] = nil }
     }
 
-    func pendingNameRecords(forDescendantsOf parent: Node) -> [(Element, PendingNameRecord)] {
+    func pendingNameRecords(forDescendantsOf parent: Node) -> [(pugi.xml_node, PendingNameRecord)] {
         pendingNamespaceRecords.compactMap {
-            $1.belongsToTree(parent) ? (element(for: .init($0)), $1) : nil
+            $1.belongsToTree(parent) ? (.init($0), $1) : nil
         }
     }
 

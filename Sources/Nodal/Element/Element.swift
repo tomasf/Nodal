@@ -9,7 +9,7 @@ public class Element: Node {
     internal override func declaredNamespacesDidChange() {
         document.rebuildNamespaceDeclarationCache(for: self)
         for (element, record) in document.pendingNameRecords(forDescendantsOf: self) {
-            if record.attemptResolution(for: element) {
+            if record.attemptResolution(for: element, in: document) {
                 document.removePendingNameRecord(for: element)
             }
         }

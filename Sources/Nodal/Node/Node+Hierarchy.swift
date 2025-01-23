@@ -120,8 +120,8 @@ public extension Node {
             return false
         }
 
-        for (element, record) in records {
-            record.updateAncestors(with: element)
+        for (node, record) in records {
+            record.updateAncestors(with: node)
         }
         return true
     }
