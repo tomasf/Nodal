@@ -12,7 +12,11 @@ internal extension String {
     }
 
     init(prefix: String?, localPart: String) {
-        self = if let prefix { prefix + ":" + localPart } else { localPart }
+        if let prefix {
+            self = prefix + ":" + localPart
+        } else {
+            self = localPart
+        }
     }
 }
 

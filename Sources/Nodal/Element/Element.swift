@@ -16,6 +16,8 @@ public class Element: Node {
     }
 
     internal override var hasNamespaceDeclarations: Bool {
-        node.attributes.contains(where: { String(cString: $0.name()).hasPrefix("xmlns") })
+        node.attributes.contains(where: {
+            String(cString: $0.name()).hasPrefix("xmlns")
+        })
     }
 }
