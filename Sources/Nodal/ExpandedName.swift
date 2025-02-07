@@ -27,7 +27,7 @@ public struct ExpandedName: Hashable, Sendable {
 
 internal extension ExpandedName {
     // Returns nil if the namespace could not be resolved
-    func qualifiedAttributeName(in element: Element) -> String? {
+    func qualifiedAttributeName(in element: Node) -> String? {
         guard let namespaceName else {
             return localName
         }

@@ -65,9 +65,9 @@ public struct XPathResultNode: CustomDebugStringConvertible {
     /// The node associated with this XPath result, or `nil` if no node is present.
     ///
     /// - Note: If the result references an attribute, this property returns the parent node of the attribute.
-    var node: (any Node)? {
+    var node: Node? {
         if let node = xPathNode.node().nonNull ?? xPathNode.parent().nonNull {
-            document.object(for: node)
+            document.node(for: node)
         } else {
             nil
         }

@@ -38,7 +38,7 @@ public extension XPathQuery {
     ///
     /// - Parameter baseNode: The node against which to evaluate the XPath query.
     /// - Returns: The result of the query as a `String`.
-    func stringResult(with baseNode: any Node) -> String {
+    func stringResult(with baseNode: Node) -> String {
         String(query.evaluate_string(.init(baseNode.node)))
     }
 
@@ -46,7 +46,7 @@ public extension XPathQuery {
     ///
     /// - Parameter baseNode: The node against which to evaluate the XPath query.
     /// - Returns: The result of the query as a `Double`.
-    func doubleResult(with baseNode: any Node) -> Double {
+    func doubleResult(with baseNode: Node) -> Double {
         query.evaluate_number(.init(baseNode.node))
     }
 
@@ -54,7 +54,7 @@ public extension XPathQuery {
     ///
     /// - Parameter baseNode: The node against which to evaluate the XPath query.
     /// - Returns: The result of the query as an `Int`.
-    func intResult(with baseNode: any Node) -> Int {
+    func intResult(with baseNode: Node) -> Int {
         Int(doubleResult(with: baseNode))
     }
 
@@ -62,7 +62,7 @@ public extension XPathQuery {
     ///
     /// - Parameter baseNode: The node against which to evaluate the XPath query.
     /// - Returns: The result of the query as a `Bool`.
-    func boolResult(with baseNode: any Node) -> Bool {
+    func boolResult(with baseNode: Node) -> Bool {
         query.evaluate_boolean(.init(baseNode.node))
     }
 
@@ -70,7 +70,7 @@ public extension XPathQuery {
     ///
     /// - Parameter baseNode: The node against which to evaluate the XPath query.
     /// - Returns: An array of `XPathResultNode` objects representing the nodes matching the query.
-    func nodesResult(with baseNode: any Node) -> [XPathResultNode] {
+    func nodesResult(with baseNode: Node) -> [XPathResultNode] {
         let nodeSet = query.evaluate_node_set(.init(baseNode.node))
         return nodeSet.nodes.map { XPathResultNode(xPathNode: $0, document: baseNode.document) }
     }
@@ -79,7 +79,7 @@ public extension XPathQuery {
     ///
     /// - Parameter baseNode: The node against which to evaluate the XPath query.
     /// - Returns: A `XPathResultNode` object representing the first node matching the query.
-    func firstNodeResult(with baseNode: any Node) -> XPathResultNode? {
+    func firstNodeResult(with baseNode: Node) -> XPathResultNode? {
         let xPathNode = query.__evaluate_nodeUnsafe(.init(baseNode.node))
         if xPathNode.node().empty() {
             return nil
@@ -102,30 +102,3 @@ public extension XPathQuery {
     }
 }
 
-internal protocol XPathVariableValue {
-    func define(in variableSet: inout pugi.xpath_variable_set, for key: String)
-}
-
-extension String: XPathVariableValue {
-    func define(in variableSet: inout pugi.xpath_variable_set, for key: String) {
-        variableSet.set(key, self)
-    }
-}
-
-extension Int: XPathVariableValue {
-    func define(in variableSet: inout pugi.xpath_variable_set, for key: String) {
-        variableSet.set(key, Double(self))
-    }
-}
-
-extension Double: XPathVariableValue {
-    func define(in variableSet: inout pugi.xpath_variable_set, for key: String) {
-        variableSet.set(key, self)
-    }
-}
-
-extension Bool: XPathVariableValue {
-    func define(in variableSet: inout pugi.xpath_variable_set, for key: String) {
-        variableSet.set(key, self)
-    }
-}

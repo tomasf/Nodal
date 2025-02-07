@@ -1,7 +1,13 @@
 import Foundation
 import pugixml
 
-internal extension Element {
+internal extension Node {
+    var hasNamespaceDeclarations: Bool {
+        node.attributes.contains(where: {
+            String(cString: $0.name()).hasPrefix("xmlns")
+        })
+    }
+
     var pendingNameRecord: PendingNameRecord? {
         document.pendingNameRecord(for: self)
     }
@@ -22,7 +28,7 @@ internal extension Element {
     }
 }
 
-public extension Element {
+public extension Node {
     /// Declares a namespace URI for a given prefix on this element.
     ///
     /// - Parameters:

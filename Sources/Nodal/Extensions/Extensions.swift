@@ -20,3 +20,15 @@ internal extension String {
 public extension String {
     static let fourSpaces = "    "
 }
+
+extension UnsafePointer<CChar> {
+    var qualifiedNameParts: (prefix: String?, localName: String) {
+        guard let separator = strstr(self, ":"),
+              let prefix = String(data: Data(bytes: self, count: distance(to: separator)), encoding: .utf8)
+        else {
+            return (nil, String(cString: self))
+        }
+
+        return (prefix, String(cString: separator + 1))
+    }
+}

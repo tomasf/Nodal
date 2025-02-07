@@ -7,12 +7,37 @@ import Bridge
 /// - Note: This class is the base for all types of XML nodes, including elements, text, comments, and more.
 ///         It provides common functionality for working with nodes, such as retrieving their name, value, and
 ///         serialized XML representation.
-public protocol Node {
+public struct Node {
     /// The document that owns this node.
     ///
     /// - Returns: The `Document` that this node belongs to.
-    var document: Document { get }
-    var node: pugi.xml_node { get }
+    let document: Document
+    internal let node: pugi.xml_node
+}
+
+extension Node: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        switch kind {
+        case .element: "Element <\(name)>"
+        case .text: "Text \"\(value)\""
+        case .cdata: "CDATA \"\(value)\""
+        case .comment: "Comment <!--\(value)-->"
+        case .doctype: "Document type declaration <!DOCTYPE \(value)>"
+        case .processingInstruction: "PI <?\(name) \(value)?>"
+        case .declaration: "Declaration <?\(name)...?>"
+        case .document: "Document"
+        }
+    }
+}
+
+extension Node: Equatable, Hashable {
+    public static func ==(_ lhs: Node, _ rhs: Node) -> Bool {
+        lhs.node == rhs.node
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(node)
+    }
 }
 
 public extension Node {
@@ -21,11 +46,9 @@ public extension Node {
     }
 
     /// The type of the node, represented as a `Kind` enum value.
-    var kind: NodeKind {
-        NodeKind(node.type())
+    var kind: Kind {
+        Kind(node.type())
     }
-
-    internal var hasNamespaceDeclarations: Bool { false }
 
     /// Serializes the node and its children into a `Data` object.
     ///

@@ -1,7 +1,7 @@
 import Foundation
 import pugixml
 
-public extension Element {
+public extension Node {
     /// The attributes of this element in document order, represented as an array of expanded names and their corresponding values.
     ///
     /// - Returns: An array of tuples where each tuple contains an `ExpandedName` and the corresponding attribute value.

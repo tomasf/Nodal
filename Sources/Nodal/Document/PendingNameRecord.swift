@@ -8,7 +8,7 @@ internal class PendingNameRecord {
 
     private static let pendingPrefix = "__pending"
 
-    init(element: Element) {
+    init(element: Node) {
         var node = element.node
         while !node.empty() {
             ancestors.insert(node)
@@ -25,12 +25,12 @@ internal class PendingNameRecord {
         }
     }
 
-    func belongsToTree(_ node: any Node) -> Bool {
+    func belongsToTree(_ node: Node) -> Bool {
         ancestors.contains(node.node)
     }
 
     // Returns placeholder prefix part
-    func addUnresolvedElementName(_ name: ExpandedName, for element: Element) -> String {
+    func addUnresolvedElementName(_ name: ExpandedName, for element: Node) -> String {
         elementName = name
         return Self.pendingPrefix
     }
@@ -40,7 +40,7 @@ internal class PendingNameRecord {
     }
 
     // Returns placeholder qualified name
-    func addUnresolvedAttribute(_ name: ExpandedName, in element: Element) -> String {
+    func addUnresolvedAttribute(_ name: ExpandedName, in element: Node) -> String {
         if let existingQName = attributes[name] {
             // A pending element for this expanded name already exists, so just replace its value
             return existingQName

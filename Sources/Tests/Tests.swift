@@ -34,13 +34,13 @@ struct Tests {
         #expect(doc.namespaceDeclarationCount() == 3)
         #expect(doc.documentElement?.expandedName.namespaceName == "default")
 
-        let a = try XPathQuery("/root/a").firstNodeResult(with: doc)?.node as? Element
+        let a = try XPathQuery("/root/a").firstNodeResult(with: doc.node)?.node
         #expect(a?.expandedName.namespaceName == "default2")
 
         let b = a?[element: "b"]
         #expect(b?.expandedName.namespaceName == "default2")
 
-        let c = try XPathQuery("foo:c").firstNodeResult(with: a!)?.node as? Element
+        let c = try XPathQuery("foo:c").firstNodeResult(with: a!)?.node
         #expect(c?.expandedName.namespaceName == "foouri")
     }
 
@@ -144,7 +144,7 @@ struct Tests {
     @Test
     func addChild() throws {
         let document = Document()
-        let a = document.addChild(ofKind: .element)
+        let a = document.node.addChild(ofKind: .element)
         #expect(a != nil)
         guard let a else { return }
 
@@ -155,13 +155,13 @@ struct Tests {
         #expect(innerDecl == nil)
 
         #expect(a.addChild(ofKind: .comment) != nil)
-        #expect(document.addChild(ofKind: .comment) != nil)
+        #expect(document.node.addChild(ofKind: .comment) != nil)
     }
 
     @Test
     func attributes() throws {
         let doc = Document()
-        let decl = doc.addChild(ofKind: .declaration)
+        let decl = doc.node.addChild(ofKind: .declaration)
         let root = doc.makeDocumentElement(name: "root")
 
         #expect(decl != nil)
@@ -189,7 +189,7 @@ struct Tests {
             </a>
         </root>
 """, options: [.default, .trimTextWhitespace])
-        #expect(doc.textContent == "foobarbazzoingbizdoz")
+        #expect(doc.node.textContent == "foobarbazzoingbizdoz")
     }
 
     @Test
@@ -218,8 +218,8 @@ struct Tests {
         let a = root.addElement("a")
         let b = root.addElement("b", at: .first)
 
-        //#expect(Array(root.children) == [b, a], "Order of children")
+        #expect(Array(root.children) == [b, a], "Order of children")
         let c = root.addCDATA("c", at: .after(b))
-        //#expect(Array(root.children) == [b, c, a], "Order of children")
+        #expect(Array(root.children) == [b, c, a], "Order of children")
     }
 }

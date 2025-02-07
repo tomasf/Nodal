@@ -1,6 +1,15 @@
 import Foundation
 import pugixml
 
+public extension Document {
+    /// A set of namespace names that are referenced in the document but have not been declared.
+    ///
+    /// - Note: This property helps identify undeclared namespaces that need to be resolved to generate XML output.
+    var undeclaredNamespaceNames: Set<String> {
+        Set(pendingNamespaceRecords.flatMap(\.value.namespaceNames))
+    }
+}
+
 internal extension Document {
     typealias Prefix = NamespaceDeclaration.Prefix
 
@@ -29,7 +38,7 @@ internal extension Document {
         }
     }
 
-    func namespaceDeclarationCount(for node: (any Node)? = nil) -> Int {
+    func namespaceDeclarationCount(for node: Node? = nil) -> Int {
         namespaceDeclarationsByPrefix.reduce(0) { result, item in
             result + item.value.filter { if let node { $0.node == node.node } else { true } }.count
         }
@@ -122,7 +131,7 @@ internal extension Document {
         removeNamespaceDeclarations(for: descendants)
     }
 
-    func rebuildNamespaceDeclarationCache(for element: Element) {
+    func rebuildNamespaceDeclarationCache(for element: Node) {
         removeNamespaceDeclarations(for: [element.node])
         addNamespaceDeclarations(for: element.node)
     }
@@ -136,9 +145,7 @@ internal extension Document {
         }
     }
 
-    func declaredNamespacesDidChange(for node: any Node) {
-        guard let element = node as? Element else { return }
-
+    func declaredNamespacesDidChange(for element: Node) {
         rebuildNamespaceDeclarationCache(for: element)
         for (element, record) in pendingNameRecords(forDescendantsOf: element) {
             if record.attemptResolution(for: element, in: self) {

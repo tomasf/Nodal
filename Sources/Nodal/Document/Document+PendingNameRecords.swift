@@ -2,7 +2,7 @@ import Foundation
 import pugixml
 
 internal extension Document {
-    func pendingNameRecord(for element: Element) -> PendingNameRecord? {
+    func pendingNameRecord(for element: Node) -> PendingNameRecord? {
         pendingNamespaceRecords[element.nodePointer]
     }
 
@@ -22,7 +22,7 @@ internal extension Document {
         )
     }
 
-    func addPendingNameRecord(for element: Element) -> PendingNameRecord {
+    func addPendingNameRecord(for element: Node) -> PendingNameRecord {
         let record = PendingNameRecord(element: element)
         pendingNamespaceRecords[element.nodePointer] = record
         return record
@@ -32,7 +32,7 @@ internal extension Document {
         pendingNamespaceRecords[element.internal_object()] = nil
     }
 
-    func removePendingNameRecords(withinTree ancestor: Element, excludingTarget: Bool = false) {
+    func removePendingNameRecords(withinTree ancestor: Node, excludingTarget: Bool = false) {
         let nodePointer = ancestor.nodePointer
         let keys = pendingNamespaceRecords.filter { node, record in
             if excludingTarget && node == nodePointer {
@@ -44,7 +44,7 @@ internal extension Document {
         for key in keys { pendingNamespaceRecords[key] = nil }
     }
 
-    func pendingNameRecords(forDescendantsOf parent: any Node) -> [(pugi.xml_node, PendingNameRecord)] {
+    func pendingNameRecords(forDescendantsOf parent: Node) -> [(pugi.xml_node, PendingNameRecord)] {
         pendingNamespaceRecords.compactMap {
             $1.belongsToTree(parent) ? (.init($0), $1) : nil
         }

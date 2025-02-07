@@ -2,7 +2,7 @@ import Foundation
 import pugixml
 
 internal extension ExpandedName {
-    init(effectiveQualifiedAttributeName qName: String, in element: Element) {
+    init(effectiveQualifiedAttributeName qName: String, in element: Node) {
         if PendingNameRecord.qualifiedNameIndicatesPending(qName),
            let record = element.pendingNameRecord,
            let pendingExpandedName = record.pendingExpandedAttributeName(for: qName) {
@@ -19,7 +19,7 @@ internal extension ExpandedName {
         }
     }
 
-    func requestQualifiedElementName(for element: Element) -> String {
+    func requestQualifiedElementName(for element: Node) -> String {
         let prefix: String?
         if let namespaceName {
             if let match = element.namespacePrefix(forName: namespaceName) {
@@ -37,7 +37,7 @@ internal extension ExpandedName {
         return String(prefix: prefix, localPart: localName)
     }
 
-    func requestQualifiedAttributeName(for element: Element) -> String {
+    func requestQualifiedAttributeName(for element: Node) -> String {
         guard let namespaceName else {
             return localName
         }

@@ -11,7 +11,7 @@ internal struct AncestorAttributeSequence: Sequence, IteratorProtocol {
         attribute = node.first_attribute()
     }
 
-    init(target: Element) {
+    init(target: Node) {
         self.init(target: target.node)
     }
 
