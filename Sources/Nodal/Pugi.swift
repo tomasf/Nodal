@@ -1,5 +1,6 @@
 import pugixml
 import Bridge
+import Foundation
 
 extension pugi.xml_node_type: Hashable {}
 extension pugi.xml_node: Hashable {
@@ -32,20 +33,22 @@ internal extension pugi.xpath_node_set {
 }
 
 internal extension pugi.xml_node {
-    mutating func addChild(kind: pugi.xml_node_type, at childPosition: Node.Position) -> pugi.xml_node {
+    func addChild(kind: pugi.xml_node_type, at childPosition: ChildPosition) -> pugi.xml_node {
         guard childPosition.validate(for: self) else {
             fatalError("Peer node for Node.Position must be a valid child of the parent")
         }
 
+        var node = self
+
         return switch childPosition {
-        case .first: prepend_child(kind)
-        case .before (let other): insert_child_before(kind, other.node)
-        case .after (let other): insert_child_after(kind, other.node)
-        case .last: append_child(kind)
+        case .first: node.prepend_child(kind)
+        case .before (let other): node.insert_child_before(kind, other.node)
+        case .after (let other): node.insert_child_after(kind, other.node)
+        case .last: node.append_child(kind)
         }
     }
 
-    mutating func insertChild(_ child: pugi.xml_node, at childPosition: Node.Position) -> pugi.xml_node {
+    mutating func insertChild(_ child: pugi.xml_node, at childPosition: ChildPosition) -> pugi.xml_node {
         guard childPosition.validate(for: self) else {
             fatalError("Peer node for Node.Position must be a valid child of the parent")
         }
@@ -56,5 +59,17 @@ internal extension pugi.xml_node {
         case .after (let other): insert_move_after(child, other.node)
         case .last: append_move(child)
         }
+    }
+}
+
+extension UnsafePointer<CChar> {
+    var qualifiedNameParts: (prefix: String?, localName: String) {
+        guard let separator = strstr(self, ":"),
+              let prefix = String(data: Data(bytes: self, count: distance(to: separator)), encoding: .utf8)
+        else {
+            return (nil, String(cString: self))
+        }
+
+        return (prefix, String(cString: separator + 1))
     }
 }

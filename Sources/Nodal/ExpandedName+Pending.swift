@@ -10,11 +10,12 @@ internal extension ExpandedName {
             return
         }
 
-        if let prefix = qName.qNamePrefix {
+        let (prefix, localName) = qName.qualifiedNameParts
+        if let prefix {
             let namespaceName = element.namespaceName(forPrefix: .named(prefix))
-            self.init(namespaceName: namespaceName, localName: qName.qNameLocalName)
+            self.init(namespaceName: namespaceName, localName: localName)
         } else {
-            self.init(namespaceName: nil, localName: qName)
+            self.init(namespaceName: nil, localName: localName)
         }
     }
 

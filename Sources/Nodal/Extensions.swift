@@ -1,14 +1,11 @@
 import Foundation
 
 internal extension String {
-    var qNamePrefix: String? {
-        guard let colon = range(of: ":") else { return nil }
-        return String(self[..<colon.lowerBound])
-    }
-
-    var qNameLocalName: String {
-        guard let colon = range(of: ":") else { return self }
-        return String(self[colon.upperBound...])
+    var qualifiedNameParts: (prefix: String?, localName: String) {
+        guard let colon = range(of: ":", options: .literal) else {
+            return (nil, self)
+        }
+        return (String(self[..<colon.lowerBound]), String(self[colon.upperBound...]))
     }
 
     init(prefix: String?, localPart: String) {

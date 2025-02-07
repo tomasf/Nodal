@@ -8,17 +8,14 @@ public class Document: Node {
     internal var pendingNamespaceRecords: [OpaquePointer: PendingNameRecord] = [:]
     internal var namespaceDeclarationsByPrefix: [NamespaceDeclaration.Prefix: [NamespaceDeclaration]] = [:]
     internal var namespaceDeclarationsByName: [String: [NamespaceDeclaration]] = [:]
+    
+    public var document: Document { self }
+    public var node: pugi.xml_node { pugiDocument.asNode }
 
     /// Creates a new, empty XML document.
     ///
     /// - Note: This initializer creates a document with no content. Elements can be added manually using the API.
-    public init() {
-        super.init(owningDocument: nil, node: self.pugiDocument.asNode)
-    }
-
-    public override var document: Document {
-        self
-    }
+    public init() {}
 
     /// A set of namespace names that are referenced in the document but have not been declared.
     ///
@@ -76,7 +73,7 @@ public class Document: Node {
     ///   - indentation: The string to use for indentation in the XML output. Defaults to `.fourSpaces`.
     /// - Returns: A `Data` object containing the serialized XML representation of the document.
     /// - Throws: `OutputError` if the document contains undeclared namespaces or if an error occurs during serialization.
-    public override func xmlData(
+    public func xmlData(
         encoding: String.Encoding = .utf8,
         options: OutputOptions = .default,
         indentation: String = .fourSpaces

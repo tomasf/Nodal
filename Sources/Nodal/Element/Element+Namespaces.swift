@@ -53,7 +53,7 @@ public extension Element {
                 }
             }, uniquingKeysWith: { $1 })
         }
-        set {
+        nonmutating set {
             var attributes = attributes
             attributes.removeAll(where: { $0.name == "xmlns" || $0.name.hasPrefix("xmlns:") })
             attributes.append(contentsOf: newValue.map { prefix, uri in
@@ -84,12 +84,12 @@ public extension Element {
 
     /// The local name of this element's qualified name, excluding any prefix.
     var localName: String {
-        name.qNameLocalName
+        node.name().qualifiedNameParts.localName
     }
 
     /// The prefix of this element's qualified name, or `nil` if no prefix is present.
     var prefix: String? {
-        name.qNamePrefix
+        node.name().qualifiedNameParts.prefix
     }
 
     /// The expanded name of this element, including its namespace name (URI) and local name.
@@ -97,7 +97,7 @@ public extension Element {
     /// - Returns: An `ExpandedName` containing the local name and namespace name.
     var expandedName: ExpandedName {
         get { document.expandedName(for: node) }
-        set { name = newValue.requestQualifiedElementName(for: self) }
+        nonmutating set { name = newValue.requestQualifiedElementName(for: self) }
     }
 
     /// The names of namespaces that are referenced in this element or its descendants but have not been declared.

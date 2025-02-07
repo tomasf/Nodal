@@ -29,7 +29,7 @@ internal extension Document {
         }
     }
 
-    func namespaceDeclarationCount(for node: Node? = nil) -> Int {
+    func namespaceDeclarationCount(for node: (any Node)? = nil) -> Int {
         namespaceDeclarationsByPrefix.reduce(0) { result, item in
             result + item.value.filter { if let node { $0.node == node.node } else { true } }.count
         }
@@ -94,16 +94,17 @@ internal extension Document {
 
     private func addNamespaceDeclarations(for node: pugi.xml_node) {
         for attribute in node.attributes {
-            let name = String(cString: attribute.name())
-            if name.hasPrefix("xmlns") {
-                let declaration = NamespaceDeclaration(
-                    node: node,
-                    prefix: name == "xmlns" ? .defaultNamespace : .named(name.qNameLocalName),
-                    namespaceName: String(cString: attribute.value())
-                )
-                namespaceDeclarationsByName[declaration.namespaceName, default: []].append(declaration)
-                namespaceDeclarationsByPrefix[declaration.prefix, default: []].append(declaration)
-            }
+            let name = attribute.name()!
+            guard strncmp(name, "xmlns", 5) == 0 else { continue }
+
+            let (prefix, localName) = name.qualifiedNameParts
+            let declaration = NamespaceDeclaration(
+                node: node,
+                prefix: prefix == nil ? .defaultNamespace : .named(localName),
+                namespaceName: String(cString: attribute.value())
+            )
+            namespaceDeclarationsByName[declaration.namespaceName, default: []].append(declaration)
+            namespaceDeclarationsByPrefix[declaration.prefix, default: []].append(declaration)
         }
     }
 
@@ -132,6 +133,17 @@ internal extension Document {
         for node in pugiDocument.documentElement.descendants {
             guard node.type() == pugi.node_element else { continue }
             addNamespaceDeclarations(for: node)
+        }
+    }
+
+    func declaredNamespacesDidChange(for node: any Node) {
+        guard let element = node as? Element else { return }
+
+        rebuildNamespaceDeclarationCache(for: element)
+        for (element, record) in pendingNameRecords(forDescendantsOf: element) {
+            if record.attemptResolution(for: element, in: self) {
+                removePendingNameRecord(for: element)
+            }
         }
     }
 }

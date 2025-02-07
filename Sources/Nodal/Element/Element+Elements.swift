@@ -98,7 +98,7 @@ public extension Element {
     ///   - position: The position where the new child element should be inserted. Defaults to `.last`, adding the element as the last child of this element.
     /// - Returns: The newly created child element.
     @discardableResult
-    func addElement(_ name: String, at position: Position = .last) -> Element {
+    func addElement(_ name: String, at position: ChildPosition = .last) -> Element {
         let element = document.element(for: node.addChild(kind: pugi.node_element, at: position))
         element.name = name
         return element
@@ -111,7 +111,7 @@ public extension Element {
     ///   - position: The position where the new child element should be inserted. Defaults to `.last`, adding the element as the last child of this element.
     /// - Returns: The newly created child element.
     @discardableResult
-    func addElement(_ name: ExpandedName, at position: Position = .last) -> Element {
+    func addElement(_ name: ExpandedName, at position: ChildPosition = .last) -> Element {
         let child = addElement("", at: position)
         child.expandedName = name
         return child
@@ -125,7 +125,7 @@ public extension Element {
     ///   - position: The position where the new child element should be inserted. Defaults to `.last`, adding the element as the last child of this element.
     /// - Returns: The newly created child element.
     @discardableResult
-    func addElement(_ localName: String, namespace namespaceName: String?, at position: Position = .last) -> Element {
+    func addElement(_ localName: String, namespace namespaceName: String?, at position: ChildPosition = .last) -> Element {
         addElement(ExpandedName(namespaceName: namespaceName, localName: localName), at: position)
     }
 
@@ -138,7 +138,7 @@ public extension Element {
     ///
     /// - Precondition: The expanded name must include a namespace URI.
     @discardableResult
-    func addElement(_ name: ExpandedName, declaringNamespaceWith prefix: String?, at position: Position = .last) -> Element {
+    func addElement(_ name: ExpandedName, declaringNamespaceWith prefix: String?, at position: ChildPosition = .last) -> Element {
         guard let uri = name.namespaceName else {
             preconditionFailure("You can't declare an empty namespace")
         }

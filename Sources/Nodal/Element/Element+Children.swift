@@ -15,7 +15,7 @@ public extension Element {
     ///   element.addText("Hello, world!")
     ///   ```
     @discardableResult
-    func addText(_ text: String, at position: Node.Position = .last) -> Node {
+    func addText(_ text: String, at position: ChildPosition = .last) -> any Node {
         var textNode = node.addChild(kind: pugi.node_pcdata, at: position)
         textNode.set_value(text)
         return document.object(for: textNode)
@@ -28,7 +28,7 @@ public extension Element {
     ///   - position: The position where the CDATA section should be inserted. Defaults to `.last`, adding the CDATA section as the last child of this element.
     /// - Returns: The newly created CDATA node.
     @discardableResult
-    func addCDATA(_ text: String, at position: Node.Position = .last) -> Node {
+    func addCDATA(_ text: String, at position: ChildPosition = .last) -> any Node {
         var cdataNode = node.addChild(kind: pugi.node_cdata, at: position)
         cdataNode.set_value(text)
         return document.object(for: cdataNode)

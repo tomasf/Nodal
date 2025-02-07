@@ -14,9 +14,10 @@ public extension Node {
     /// - Note: This method clears all attributes associated with the node, including an element's namespace declarations.
     func removeAllAttributes() {
         let didTouchNamespaces = hasNamespaceDeclarations
+        var node = node
         node.remove_attributes()
         if didTouchNamespaces {
-            declaredNamespacesDidChange()
+            document.declaredNamespacesDidChange(for: self)
         }
     }
 
@@ -32,8 +33,9 @@ public extension Node {
                 String(cString: $0.value())
             )}
         }
-        set {
+        nonmutating set {
             var didTouchNamespaces = hasNamespaceDeclarations
+            var node = node
             node.remove_attributes()
             for (name, value) in newValue {
                 var attr = node.append_attribute(name)
@@ -43,7 +45,7 @@ public extension Node {
                 }
             }
             if didTouchNamespaces {
-                declaredNamespacesDidChange()
+                document.declaredNamespacesDidChange(for: self)
             }
         }
     }
@@ -65,7 +67,8 @@ public extension Node {
             let attribute = node.attribute(name)
             return attribute.empty() ? nil : String(cString: attribute.value())
         }
-        set {
+        nonmutating set {
+            var node = node
             var attr = node.attribute(name)
             if attr.empty() {
                 if newValue != nil {
@@ -80,7 +83,7 @@ public extension Node {
                 }
             }
             if name.hasPrefix("xmlns") {
-                declaredNamespacesDidChange()
+                document.declaredNamespacesDidChange(for: self)
             }
         }
     }

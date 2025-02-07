@@ -14,9 +14,11 @@ internal extension Document {
             return name
         }
 
+        let (prefix, localName) = elementNode.name().qualifiedNameParts
+
         return ExpandedName(
-            namespaceName: namespaceName(forPrefix: .init(qName.qNamePrefix), in: elementNode),
-            localName: qName.qNameLocalName
+            namespaceName: namespaceName(forPrefix: .init(prefix), in: elementNode),
+            localName: localName
         )
     }
 
@@ -42,7 +44,7 @@ internal extension Document {
         for key in keys { pendingNamespaceRecords[key] = nil }
     }
 
-    func pendingNameRecords(forDescendantsOf parent: Node) -> [(pugi.xml_node, PendingNameRecord)] {
+    func pendingNameRecords(forDescendantsOf parent: any Node) -> [(pugi.xml_node, PendingNameRecord)] {
         pendingNamespaceRecords.compactMap {
             $1.belongsToTree(parent) ? (.init($0), $1) : nil
         }

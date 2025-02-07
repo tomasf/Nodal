@@ -25,7 +25,7 @@ internal class PendingNameRecord {
         }
     }
 
-    func belongsToTree(_ node: Node) -> Bool {
+    func belongsToTree(_ node: any Node) -> Bool {
         ancestors.contains(node.node)
     }
 
