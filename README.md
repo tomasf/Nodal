@@ -33,7 +33,7 @@ let document = Document()
 let root = document.makeDocumentElement(name: "content", defaultNamespace: "http://tomasf.se/xml/example")
 let entry = root.addElement("entry")
 entry[attribute: "key"] = "price"
-entry.appendText("499")
+entry.addText("499")
 let output = try document.xmlData()
 ```
 
