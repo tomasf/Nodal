@@ -5,25 +5,7 @@ import Bridge
 public extension Node {
     /// The parent node of this node, or `nil` if this node has no parent.
     var parent: Node? {
-        document.objectIfValid(node.parent())
-    }
-
-    /// The child nodes of this node.
-    ///
-    /// - Returns: An array of `Node` objects representing all child nodes of this node.
-    var children: some Sequence<Node> {
-        node.children.lazy.map { self.document.object(for: $0) }
-    }
-
-    /// Retrieves the child nodes of a specific kind.
-    ///
-    /// - Parameter kind: The kind of child nodes to retrieve.
-    /// - Returns: An array of `Node` objects of the specified kind.
-    func children(ofKind kind: Kind) -> some Sequence<Node> {
-        let pugiType = kind.pugiType
-        return node.children.lazy
-            .filter { $0.type() == pugiType }
-            .map { self.document.object(for: $0) }
+        document.nodeIfValid(node.parent())
     }
 
     /// A sequence that traverses all descendant nodes of this node in depth-first order, including the node itself.
@@ -33,7 +15,7 @@ public extension Node {
     /// - Returns: A `NodeDescendants` sequence that iterates over all nodes in the tree, starting with this node.
     var descendants: some Sequence<Node> {
         DescendantSequence(target: self.node).lazy.map { node in
-            self.document.object(for: node)
+            self.document.node(for: node)
         }
     }
 
@@ -41,14 +23,14 @@ public extension Node {
     ///
     /// - Note: A sibling is another node with the same parent as this node, appearing immediately before it in the parent's child list.
     var previousSibling: Node? {
-        document.objectIfValid(node.previous_sibling())
+        document.nodeIfValid(node.previous_sibling())
     }
 
     /// The next sibling of this node, or `nil` if this node has no next sibling.
     ///
     /// - Note: A sibling is another node with the same parent as this node, appearing immediately after it in the parent's child list.
     var nextSibling: Node? {
-        document.objectIfValid(node.next_sibling())
+        document.nodeIfValid(node.next_sibling())
     }
 
     /// Determines whether this node is a descendant of the specified ancestor node.
@@ -65,37 +47,15 @@ public extension Node {
         }
         return false
     }
-}
 
-public extension Node {
-    /// Adds a new child node of the specified kind to this node at the given position.
+    /// Concatenates the values of all descendant text and CDATA nodes of this node.
     ///
-    /// - Parameters:
-    ///   - kind: The kind of child node to add (e.g., element, text, comment).
-    ///   - position: The position where the new child node should be inserted. Defaults to `.last`, adding the child as the last child of this node.
-    /// - Returns: The newly created child node, or `nil` if that kind of child can't be added to this node.
-    func addChild(ofKind kind: Kind, at position: Position = .last) -> Node? {
-        document.objectIfValid(node.addChild(kind: kind.pugiType, at: position))
-    }
-
-    /// Removes the specified child node from this node.
-    ///
-    /// - Parameter child: The child node to remove.
-    func removeChild(_ child: Node) {
-        if let element = child as? Element {
-            document.removePendingNameRecords(withinTree: element)
-            document.sendNoteDeletionNotification(for: [element.node])
-        }
-        node.remove_child(child.node)
-    }
-
-    /// Removes all child nodes from this node.
-    func removeAllChildren() {
-        if let element = self as? Element {
-            document.removePendingNameRecords(withinTree: element, excludingTarget: true)
-            document.sendNoteDeletionNotification(for: Set(children.map(\.node)))
-        }
-        node.remove_children()
+    /// - Returns: A single string containing the concatenated text of all descendant nodes of type `.text` or `.cdata`.
+    var textContent: String {
+        node.descendants
+            .filter { $0.type() == pugi.node_pcdata || $0.type() == pugi.node_cdata }
+            .map { String(cString: $0.value()) }
+            .joined()
     }
 }
 
@@ -118,35 +78,10 @@ public extension Node {
             return false
         }
 
-        for (element, record) in records {
-            record.updateAncestors(with: element)
+        for (node, record) in records {
+            record.updateAncestors(with: node)
         }
         return true
-    }
-}
-
-public extension Node {
-    /// Adds a new comment with the specified content to this node at the given position.
-    ///
-    /// - Parameters:
-    ///   - text: The content to include in the comment.
-    ///   - position: The position where the comment node should be inserted. Defaults to `.last`, adding the comment as the last child of this node.
-    /// - Returns: The newly created comment node.
-    @discardableResult
-    func addComment(_ text: String, at position: Position = .last) -> Node {
-        var commentNode = node.addChild(kind: pugi.node_comment, at: position)
-        commentNode.set_value(text)
-        return document.object(for: commentNode)
-    }
-
-    /// Concatenates the values of all descendant text and CDATA nodes of this node.
-    ///
-    /// - Returns: A single string containing the concatenated text of all descendant nodes of type `.text` or `.cdata`.
-    var textContent: String {
-        node.descendants
-            .filter { $0.type() == pugi.node_pcdata || $0.type() == pugi.node_cdata }
-            .map { String(cString: $0.value()) }
-            .joined()
     }
 }
 

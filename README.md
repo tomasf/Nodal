@@ -12,7 +12,7 @@ Add Nodal as a dependency in your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/tomasf/Nodal.git", .upToNextMinor(from: "0.1.0"))
+    .package(url: "https://github.com/tomasf/Nodal.git", .upToNextMinor(from: "0.2.0"))
 ]
 ```
 

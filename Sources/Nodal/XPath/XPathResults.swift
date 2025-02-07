@@ -67,7 +67,7 @@ public struct XPathResultNode: CustomDebugStringConvertible {
     /// - Note: If the result references an attribute, this property returns the parent node of the attribute.
     var node: Node? {
         if let node = xPathNode.node().nonNull ?? xPathNode.parent().nonNull {
-            document.object(for: node)
+            document.node(for: node)
         } else {
             nil
         }

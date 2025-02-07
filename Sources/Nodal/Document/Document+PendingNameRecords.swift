@@ -2,7 +2,7 @@ import Foundation
 import pugixml
 
 internal extension Document {
-    func pendingNameRecord(for element: Element) -> PendingNameRecord? {
+    func pendingNameRecord(for element: Node) -> PendingNameRecord? {
         pendingNamespaceRecords[element.nodePointer]
     }
 
@@ -14,23 +14,25 @@ internal extension Document {
             return name
         }
 
+        let (prefix, localName) = elementNode.name().qualifiedNameParts
+
         return ExpandedName(
-            namespaceName: elementNode.namespaceName(for: qName.qNamePrefix),
-            localName: qName.qNameLocalName
+            namespaceName: namespaceName(forPrefix: .init(prefix), in: elementNode),
+            localName: localName
         )
     }
 
-    func addPendingNameRecord(for element: Element) -> PendingNameRecord {
+    func addPendingNameRecord(for element: Node) -> PendingNameRecord {
         let record = PendingNameRecord(element: element)
         pendingNamespaceRecords[element.nodePointer] = record
         return record
     }
 
-    func removePendingNameRecord(for element: Element) {
-        pendingNamespaceRecords[element.nodePointer] = nil
+    func removePendingNameRecord(for element: pugi.xml_node) {
+        pendingNamespaceRecords[element.internal_object()] = nil
     }
 
-    func removePendingNameRecords(withinTree ancestor: Element, excludingTarget: Bool = false) {
+    func removePendingNameRecords(withinTree ancestor: Node, excludingTarget: Bool = false) {
         let nodePointer = ancestor.nodePointer
         let keys = pendingNamespaceRecords.filter { node, record in
             if excludingTarget && node == nodePointer {
@@ -42,9 +44,9 @@ internal extension Document {
         for key in keys { pendingNamespaceRecords[key] = nil }
     }
 
-    func pendingNameRecords(forDescendantsOf parent: Node) -> [(Element, PendingNameRecord)] {
+    func pendingNameRecords(forDescendantsOf parent: Node) -> [(pugi.xml_node, PendingNameRecord)] {
         pendingNamespaceRecords.compactMap {
-            $1.belongsToTree(parent) ? (element(for: .init($0)), $1) : nil
+            $1.belongsToTree(parent) ? (.init($0), $1) : nil
         }
     }
 

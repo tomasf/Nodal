@@ -1,7 +1,13 @@
 import Foundation
 import pugixml
 
-internal extension Element {
+internal extension Node {
+    var hasNamespaceDeclarations: Bool {
+        node.attributes.contains(where: {
+            String(cString: $0.name()).hasPrefix("xmlns")
+        })
+    }
+
     var pendingNameRecord: PendingNameRecord? {
         document.pendingNameRecord(for: self)
     }
@@ -13,24 +19,16 @@ internal extension Element {
         return document.addPendingNameRecord(for: self)
     }
 
-    var explicitNamespacesInScope: NamespaceBindings {
-        node.explicitNamespacesInScope
+    func namespacePrefix(forName namespaceName: String) -> Document.Prefix? {
+        document.namespacePrefix(forName: namespaceName, in: node)
     }
 
-    func prefix(for namespaceName: String) -> String? {
-        node.prefix(for: namespaceName)
-    }
-
-    func nonDefaultPrefix(for namespaceName: String) -> String? {
-        node.nonDefaultPrefix(for: namespaceName)
-    }
-
-    func namespaceName(for prefix: String?) -> String? {
-        node.namespaceName(for: prefix)
+    func namespaceName(forPrefix prefix: Document.Prefix) -> String? {
+        document.namespaceName(forPrefix: prefix, in: node)
     }
 }
 
-public extension Element {
+public extension Node {
     /// Declares a namespace URI for a given prefix on this element.
     ///
     /// - Parameters:
@@ -49,7 +47,7 @@ public extension Element {
     ///            and the values are the corresponding namespace names (URIs).
     ///
     /// - Note: Setting this property updates the `xmlns` attributes on the element.
-    var declaredNamespaces: NamespaceBindings {
+    var declaredNamespaces: [String?: String] {
         get {
             Dictionary(attributes.compactMap {
                 if $0.name == "xmlns" {
@@ -61,7 +59,7 @@ public extension Element {
                 }
             }, uniquingKeysWith: { $1 })
         }
-        set {
+        nonmutating set {
             var attributes = attributes
             attributes.removeAll(where: { $0.name == "xmlns" || $0.name.hasPrefix("xmlns:") })
             attributes.append(contentsOf: newValue.map { prefix, uri in
@@ -76,10 +74,10 @@ public extension Element {
     ///
     /// - Returns: A dictionary where the keys are namespace prefixes (or `nil` for the default namespace),
     ///            and the values are the corresponding namespace names (URIs).
-    var namespacesInScope: NamespaceBindings {
-        var namespaces = explicitNamespacesInScope
-        namespaces[pugi.xml_node.xmlNamespacePrefix] = pugi.xml_node.xmlNamespaceName
-        namespaces[pugi.xml_node.nsNamespacePrefix] = pugi.xml_node.nsNamespaceName
+    var namespacesInScope: [String?: String] {
+        var namespaces = node.explicitNamespacesInScope
+        namespaces[Document.xmlNamespace.prefix.string] = Document.xmlNamespace.name
+        namespaces[Document.xmlnsNamespace.prefix.string] = Document.xmlnsNamespace.name
         return namespaces
     }
 
@@ -87,24 +85,17 @@ public extension Element {
     ///
     /// - Returns: The URI associated with the default namespace (`xmlns`) in this scope, or `nil` if no default namespace is declared.
     var defaultNamespaceName: String? {
-        namespaceName(for: nil)
+        namespaceName(forPrefix: .defaultNamespace)
     }
 
     /// The local name of this element's qualified name, excluding any prefix.
     var localName: String {
-        name.qNameLocalName
+        node.name().qualifiedNameParts.localName
     }
 
     /// The prefix of this element's qualified name, or `nil` if no prefix is present.
     var prefix: String? {
-        name.qNamePrefix
-    }
-
-    /// The namespace name (URI) associated with this element's prefix.
-    ///
-    /// - Returns: The namespace URI for the prefix, or `nil` if the prefix is not bound to a namespace.
-    var namespaceName: String? {
-        namespaceName(for: prefix)
+        node.name().qualifiedNameParts.prefix
     }
 
     /// The expanded name of this element, including its namespace name (URI) and local name.
@@ -112,7 +103,7 @@ public extension Element {
     /// - Returns: An `ExpandedName` containing the local name and namespace name.
     var expandedName: ExpandedName {
         get { document.expandedName(for: node) }
-        set { name = newValue.requestQualifiedElementName(for: self) }
+        nonmutating set { name = newValue.requestQualifiedElementName(for: self) }
     }
 
     /// The names of namespaces that are referenced in this element or its descendants but have not been declared.

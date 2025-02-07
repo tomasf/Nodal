@@ -1,7 +1,7 @@
 import Foundation
 import pugixml
 
-public extension Element {
+public extension Node {
     /// The attributes of this element in document order, represented as an array of expanded names and their corresponding values.
     ///
     /// - Returns: An array of tuples where each tuple contains an `ExpandedName` and the corresponding attribute value.
@@ -14,7 +14,8 @@ public extension Element {
                 String(cString: $0.value())
             )}
         }
-        set {
+        nonmutating set {
+            var node = node
             node.remove_attributes()
             for (name, value) in newValue {
                 let qName = name.requestQualifiedAttributeName(for: self)
@@ -31,7 +32,7 @@ public extension Element {
     /// - Note: Setting this property replaces all existing attributes with the new ones. The order of attributes is determined by the dictionary's order.
     var namespacedAttributes: [ExpandedName: String] {
         get { Dictionary(orderedAttributes) { $1 } }
-        set { orderedAttributes = newValue.map { ($0, $1) } }
+        nonmutating set { orderedAttributes = newValue.map { ($0, $1) } }
     }
 
     /// Accesses the value of an attribute by its expanded name.
@@ -62,7 +63,7 @@ public extension Element {
 
             return self[attribute: qName]
         }
-        set {
+        nonmutating set {
             let qName = name.requestQualifiedAttributeName(for: self)
             self[attribute: qName] = newValue
         }
@@ -88,7 +89,7 @@ public extension Element {
         get {
             self[attribute: ExpandedName(namespaceName: namespaceURI, localName: localName)]
         }
-        set {
+        nonmutating set {
             self[attribute: ExpandedName(namespaceName: namespaceURI, localName: localName)] = newValue
         }
     }
