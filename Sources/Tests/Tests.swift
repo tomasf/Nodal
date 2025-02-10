@@ -222,4 +222,28 @@ struct Tests {
         let c = root.addCDATA("c", at: .after(b))
         #expect(Array(root.children) == [b, c, a], "Order of children")
     }
+
+    @Test
+    func valueCodable() throws {
+        let doc = try Document(string: "<root value=\"12345 \" list=\"12 \t34   56 \"/>")
+        let root = doc.documentElement!
+        let intValue: Int = try root.value(forAttribute: "value")
+        #expect(intValue == 12345)
+
+        let doubleValue: Double = try root.value(forAttribute: "value")
+        #expect(abs(doubleValue - 12345.0) < .ulpOfOne)
+
+        #expect(throws: XMLValueError.self) {
+            let _: Bool = try root.value(forAttribute: "value")
+        }
+
+        root.setValue(true, forAttribute: "boolean")
+        #expect(root[attribute: "boolean"] == "true")
+
+        let integers: [Int] = try root.value(forAttribute: "list")
+        #expect(integers == [12, 34, 56])
+
+        root.setValue([12,55,-4], forAttribute: "numbers")
+        #expect(root[attribute: "numbers"] == "12 55 -4")
+    }
 }

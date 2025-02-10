@@ -48,14 +48,38 @@ public extension Node {
         return false
     }
 
-    /// Concatenates the values of all descendant text and CDATA nodes of this node.
+    /// Gets or sets the concatenated text content of this node and all its descendant text and CDATA nodes.
     ///
-    /// - Returns: A single string containing the concatenated text of all descendant nodes of type `.text` or `.cdata`.
+    /// - Getter: Returns a single string containing the concatenated text of all descendant nodes of type `.text` or `.cdata`.
+    /// - Setter: Replaces all existing children of this node with a single text node containing the new value.
+    ///   - If the node type cannot contain text, a precondition failure occurs.
+    ///
+    /// Example:
+    /// ```xml
+    /// <person>
+    ///     <name>John</name>
+    ///     <age>30</age>
+    /// </person>
+    /// ```
+    ///
+    /// ```swift
+    /// let name = personNode.textContent // "John30"
+    /// personNode.textContent = "New Value" // Replaces all children with a single text node
+    /// ```
+    ///
+    /// - Precondition: The node must be capable of containing text.
     var textContent: String {
-        node.descendants
-            .filter { $0.type() == pugi.node_pcdata || $0.type() == pugi.node_cdata }
-            .map { String(cString: $0.value()) }
-            .joined()
+        get {
+            node.descendants
+                .filter { $0.type() == pugi.node_pcdata || $0.type() == pugi.node_cdata }
+                .map { String(cString: $0.value()) }
+                .joined()
+        }
+        nonmutating set {
+            precondition(canContainChildren(ofKind: .text), "This kind of node can't contain text")
+            removeAllChildren()
+            addText(newValue)
+        }
     }
 }
 
