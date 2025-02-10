@@ -19,33 +19,21 @@ public extension Node {
 
     /// Retrieves the first child element with the specified name.
     ///
-    /// - Parameter name: The qualified name of the child element to retrieve.
+    /// - Parameter name: The name of the child element to retrieve; either a `String` or an `ExpandedName`.
     /// - Returns: The first child element with the specified name, or `nil` if no such element exists.
-    subscript(element name: String) -> Node? {
-        node.children.first {
-            $0.type() == pugi.node_element && String(cString: $0.name()) == name
+    subscript(element name: any ElementName) -> Node? {
+        node.children.lazy.first {
+            $0.type() == pugi.node_element && name.matches(node: $0, in: document)
         }?.wrapped(in: document)
     }
 
     /// Retrieves all child elements with the specified name.
     ///
-    /// - Parameter name: The qualified name of the child elements to retrieve.
+    /// - Parameter name: The name of the child elements to retrieve; either a `String` or an `ExpandedName`.
     /// - Returns: An array of child elements with the specified name.
-    subscript(elements name: String) -> [Node] {
+    subscript(elements name: any ElementName) -> [Node] {
         node.children.lazy.filter {
-            $0.type() == pugi.node_element && String(cString: $0.name()) == name
-        }.map { $0.wrapped(in: document) }
-    }
-
-    /// Retrieves all child elements matching the specified expanded name.
-    ///
-    /// - Parameter targetName: The expanded name (including local name and optional namespace) of the elements to retrieve.
-    /// - Returns: An array of child elements matching the expanded name.
-    subscript(elements targetName: ExpandedName) -> [Node] {
-        return node.children.lazy.filter {
-            $0.type() == pugi.node_element
-            && String(cString: $0.name()).hasSuffix(targetName.localName)
-            && self.document.expandedName(for: $0) == targetName
+            $0.type() == pugi.node_element && name.matches(node: $0, in: document)
         }.map { $0.wrapped(in: document) }
     }
 
@@ -57,18 +45,6 @@ public extension Node {
     /// - Returns: An array of child elements matching the local name and namespace URI.
     subscript(elements localName: String, uri namespaceURI: String) -> [Node] {
         self[elements: ExpandedName(namespaceName: namespaceURI, localName: localName)]
-    }
-
-    /// Retrieves the first child element matching the specified expanded name.
-    ///
-    /// - Parameter targetName: The expanded name (including local name and optional namespace) of the element to retrieve.
-    /// - Returns: The first child element matching the expanded name, or `nil` if no such element exists.
-    subscript(element targetName: ExpandedName) -> Node? {
-        node.children.lazy.first {
-            $0.type() == pugi.node_element
-            && String(cString: $0.name()).hasSuffix(targetName.localName)
-            && document.expandedName(for: $0) == targetName
-        }?.wrapped(in: document)
     }
 
     /// Retrieves the first child element with the specified local name and namespace URI.
@@ -83,31 +59,18 @@ public extension Node {
 }
 
 public extension Node {
-    /// Adds a new child element with the specified qualified name to this element at the given position.
+    /// Adds a new child element with the specified name to this element at the given position.
     ///
     /// - Parameters:
-    ///   - name: The qualified name of the new element.
+    ///   - name: The name of the new element; either a `String` or an `ExpandedName`.
     ///   - position: The position where the new child element should be inserted. Defaults to `.last`, adding the element as the last child of this element.
     /// - Returns: The newly created child element.
     @discardableResult
-    func addElement(_ name: String, at position: Position = .last) -> Node {
+    func addElement(_ name: any ElementName, at position: Position = .last) -> Node {
         precondition(canContainChildren(ofKind: .element), "This kind of node can't contain elements")
         let element = document.node(for: node.addChild(kind: pugi.node_element, at: position))
-        element.name = name
+        element.name = name.requestQualifiedName(for: element)
         return element
-    }
-
-    /// Adds a new child element with the specified expanded name to this element at the given position.
-    ///
-    /// - Parameters:
-    ///   - name: The expanded name of the new element, including the local name and an optional namespace.
-    ///   - position: The position where the new child element should be inserted. Defaults to `.last`, adding the element as the last child of this element.
-    /// - Returns: The newly created child element.
-    @discardableResult
-    func addElement(_ name: ExpandedName, at position: Position = .last) -> Node {
-        let child = addElement("", at: position)
-        child.expandedName = name
-        return child
     }
 
     /// Adds a new child element with the specified local name and optional namespace URI to this element at the given position.

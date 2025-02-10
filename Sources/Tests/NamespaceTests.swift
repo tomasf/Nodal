@@ -1,9 +1,9 @@
 @testable import Nodal
 import Testing
 
-struct Tests {
+struct NamespaceTests {
     @Test
-    func namespaceDeclarationCache() {
+    func declarationCache() {
         let doc = Document()
         let root = doc.makeDocumentElement(name: "root")
         let a = root.addElement("a")
@@ -22,7 +22,7 @@ struct Tests {
     }
 
     @Test
-    func namespaceDeclarationCacheLoaded() throws {
+    func declarationCacheLoaded() throws {
         let doc = try Document(string: """
         <root xmlns="default">
             <a xmlns="default2" xmlns:foo="foouri">
@@ -45,7 +45,7 @@ struct Tests {
     }
 
     @Test
-    func namespaceShadowing() {
+    func shadowing() {
         let doc = Document()
         let root = doc.makeDocumentElement(name: "root")
         let sub = root.addElement("sub")
@@ -75,7 +75,7 @@ struct Tests {
     }
 
     @Test
-    func deferredNamespaceResolution() {
+    func deferredResolution() {
         let document = Document()
         let root = document.makeDocumentElement(name: "root")
 
@@ -138,112 +138,5 @@ struct Tests {
 
         #expect(doc.pendingNameRecordCount == 0)
         _ = try doc.xmlData() // Should not throw
-    }
-
-    // addChild should return nil if the type of node can't be added to that parent
-    @Test
-    func addChild() throws {
-        let document = Document()
-        let a = document.node.addChild(ofKind: .element)
-        #expect(a != nil)
-        guard let a else { return }
-
-        let innerDoc = a.addChild(ofKind: .document)
-        #expect(innerDoc == nil)
-
-        let innerDecl = a.addChild(ofKind: .declaration)
-        #expect(innerDecl == nil)
-
-        #expect(a.addChild(ofKind: .comment) != nil)
-        #expect(document.node.addChild(ofKind: .comment) != nil)
-    }
-
-    @Test
-    func attributes() throws {
-        let doc = Document()
-        let decl = doc.node.addChild(ofKind: .declaration)
-        let root = doc.makeDocumentElement(name: "root")
-
-        #expect(decl != nil)
-        #expect(decl!.supportsAttributes == true)
-        decl![attribute: "q2"] = "v2"
-
-        let a = root.addElement("a")
-        #expect(a.supportsAttributes == true)
-        a[attribute: "q1"] = "v1"
-        let text = a.addText("text")
-        #expect(text.supportsAttributes == false)
-
-        #expect(try doc.xmlString(options: .raw) == "<?xml q2=\"v2\"?><root><a q1=\"v1\">text</a></root>")
-    }
-
-    @Test
-    func textContent() throws {
-        let doc = try Document(string: """
-        <root>
-            foo
-            <a>
-                bar
-                <b>baz<!--comment--><![CDATA[zoing]]>biz</b>
-                doz
-            </a>
-        </root>
-""", options: [.default, .trimTextWhitespace])
-        #expect(doc.node.textContent == "foobarbazzoingbizdoz")
-    }
-
-    @Test
-    func move() throws {
-        let doc = Document()
-        let root = doc.makeDocumentElement(name: "root")
-        let a = root.addElement("a")
-        let b = root.addElement("b")
-        let c = a.addComment("hello")
-
-        #expect(c.move(to: a) == true, "Successful move")
-        //#expect(Array(a.children) == [c], "Destination has target")
-        #expect(a.move(to: b) == true, "Successful move with children")
-        //#expect(c.parent?.parent == b, "Grandparent is correct")
-
-        let doc2 = Document()
-        let root2 = doc2.makeDocumentElement(name: "root2")
-        #expect(c.move(to: root2) == false, "Move between documents")
-        #expect(c.move(to: c) == false, "Move to itself")
-    }
-
-    @Test
-    func addAt() throws {
-        let doc = Document()
-        let root = doc.makeDocumentElement(name: "root")
-        let a = root.addElement("a")
-        let b = root.addElement("b", at: .first)
-
-        #expect(Array(root.children) == [b, a], "Order of children")
-        let c = root.addCDATA("c", at: .after(b))
-        #expect(Array(root.children) == [b, c, a], "Order of children")
-    }
-
-    @Test
-    func valueCodable() throws {
-        let doc = try Document(string: "<root value=\"12345 \" list=\"12 \t34   56 \"/>")
-        let root = doc.documentElement!
-        let intValue: Int = try root.value(forAttribute: "value")
-        #expect(intValue == 12345)
-
-        let doubleValue: Double = try root.value(forAttribute: "value")
-        #expect(abs(doubleValue - 12345.0) < .ulpOfOne)
-
-        #expect(throws: XMLValueError.self) {
-            let _: Bool = try root.value(forAttribute: "value")
-        }
-
-        root.setValue(true, forAttribute: "boolean")
-        #expect(root[attribute: "boolean"] == "true")
-
-        let integers: [Int] = try root.value(forAttribute: "list")
-        #expect(integers == [12, 34, 56])
-
-        root.setValue([12,55,-4], forAttribute: "numbers")
-        #expect(root[attribute: "numbers"] == "12 55 -4")
     }
 }
