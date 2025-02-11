@@ -31,9 +31,9 @@ struct CodableProtocolTests {
         struct Vehicle: XMLElementCodable, Equatable {
             var make: String
             var model: String
-            var year: Int
+            var year: Int?
 
-            init(make: String, model: String, year: Int) {
+            init(make: String, model: String, year: Int? = nil) {
                 self.make = make
                 self.model = model
                 self.year = year
@@ -42,13 +42,13 @@ struct CodableProtocolTests {
             init(from element: Node) throws {
                 make = try element.value(forAttribute: "make")
                 model = try element.value(forAttribute: "model")
-                year = try element.value(forAttribute: "year")
+                year = try element.value(forAttribute: ExpandedName(namespaceName: "foo", localName: "year"))
             }
 
             func encode(to element: Node) {
                 element.setValue(make, forAttribute: "make")
                 element.setValue(model, forAttribute: "model")
-                element.setValue(year, forAttribute: "year")
+                element.setValue(year, forAttribute: ExpandedName(namespaceName: "foo", localName: "year"))
             }
         }
 
@@ -69,14 +69,14 @@ struct CodableProtocolTests {
                 name = try element.value(forAttribute: "name")
                 age = try element.value(forAttribute: "age")
                 vehicles = try element.decode(elementName: "vehicle", containedIn: "vehicles")
-                primaryVehicle = try element.decode(elementName: "primaryvehicle")
+                primaryVehicle = try element.decode(elementName: ExpandedName(namespaceName: "foo", localName: "primary"))
             }
 
             func encode(to element: Node) {
                 element.setValue(name, forAttribute: "name")
                 element.setValue(age, forAttribute: "age")
                 element.encode(vehicles, elementName: "vehicle", containedIn: "vehicles")
-                element.encode(primaryVehicle, elementName: "primaryvehicle")
+                element.encode(primaryVehicle, elementName: ExpandedName(namespaceName: "foo", localName: "primary"))
             }
         }
 
@@ -119,6 +119,7 @@ struct CodableProtocolTests {
 
         let doc = Document()
         let root = doc.makeDocumentElement(name: "directory")
+        root.declareNamespace("foo", forPrefix: "f")
         directory.encode(to: root)
         print(try doc.xmlString())
 
