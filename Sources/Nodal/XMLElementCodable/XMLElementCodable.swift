@@ -37,4 +37,5 @@ public typealias XMLElementCodable = XMLElementEncodable & XMLElementDecodable
 public enum XMLElementCodableError: Error {
     case elementMissing (any ElementName)
     case containerMissing (any ElementName)
+    case documentElementMissing
 }
