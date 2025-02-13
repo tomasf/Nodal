@@ -5,7 +5,7 @@ struct MacroTests {
     @XMLCodable
     struct Vehicle {
         let make: String
-        @Attribute let model: String
+        let model: String
         @Attribute(ExpandedName(namespaceName: "foo", localName: "year")) let year: Int?
         @TextContent let content: String
 
@@ -20,8 +20,8 @@ struct MacroTests {
     @XMLCodable
     struct Person {
         let name: String
-        @Element("vehicle", containedIn: "vehicles") let vehicles: [Vehicle]
         let age: Int
+        @Element("vehicle", containedIn: "vehicles") let vehicles: [Vehicle]
         @Element("primaryvehicle", namespace: "foo") let primaryVehicle: Vehicle?
 
         init(name: String, vehicles: [Vehicle], age: Int, primaryVehicle: Vehicle?) {

@@ -28,7 +28,7 @@ internal extension ExpandedName {
                 prefix = element.requirePendingNameRecord().addUnresolvedElementName(self, for: element)
             }
         } else {
-            guard element.namespaceName(forPrefix: .defaultNamespace) == nil else {
+            guard element.namespaceName(forPrefix: .defaultNamespace)?.nonEmpty == nil else {
                 fatalError("Can't use a nil namespace when there's a default namespace in scope")
             }
             prefix = nil

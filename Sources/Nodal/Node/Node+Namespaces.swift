@@ -37,6 +37,7 @@ public extension Node {
     ///
     /// - Note: This adds or updates a `xmlns` attribute for the specified prefix.
     func declareNamespace(_ uri: String, forPrefix prefix: String?) {
+        precondition(!uri.isEmpty || prefix == nil, "Declaring an empty namespace URI for a non-nil prefix is not allowed")
         let attributeName = if let prefix { "xmlns:" + prefix } else { "xmlns" }
         self[attribute: attributeName] = uri
     }

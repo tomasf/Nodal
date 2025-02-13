@@ -54,13 +54,13 @@ internal extension Document {
 
         // Optimization: If the only candidate is the root element, then it's guaranteed to be right
         if candidates.count == 1, candidates[0].node == pugiDocument.documentElement {
-            return candidates[0].namespaceName
+            return candidates[0].namespaceName.nonEmpty
         }
 
         var node = element
         while(!node.empty()) {
             for candidate in candidates where candidate.node == node {
-                return candidate.namespaceName
+                return candidate.namespaceName.nonEmpty
             }
             node = node.parent()
         }

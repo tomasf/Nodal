@@ -75,6 +75,26 @@ struct NamespaceTests {
     }
 
     @Test
+    func defaultReset() throws {
+        let doc = Document()
+        let root = doc.makeDocumentElement(name: "root")
+        root.declareNamespace("foo", forPrefix: nil)
+        let sub = root.addElement("sub")
+        let leaf = sub.addElement("leaf")
+
+        // Sub inherits its default namespace from root
+        #expect(sub.expandedName.namespaceName == "foo")
+        #expect(sub[element: ExpandedName(namespaceName: "foo", localName: "leaf")] == leaf)
+        #expect(sub[element: ExpandedName(namespaceName: nil, localName: "leaf")] == nil)
+
+        // Declaring the empty namespace overrides the default namespace; sub and leaf are now in no namespace
+        sub.declareNamespace("", forPrefix: nil)
+        #expect(sub.expandedName.namespaceName == nil)
+        #expect(sub[element: ExpandedName(namespaceName: "foo", localName: "leaf")] == nil)
+        #expect(sub[element: ExpandedName(namespaceName: nil, localName: "leaf")] == leaf)
+    }
+
+    @Test
     func deferredResolution() {
         let document = Document()
         let root = document.makeDocumentElement(name: "root")

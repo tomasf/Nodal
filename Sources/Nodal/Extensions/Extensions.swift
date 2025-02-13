@@ -23,6 +23,10 @@ internal extension String {
 
 public extension String {
     static let fourSpaces = "    "
+
+    var nonEmpty: String? {
+        isEmpty ? nil : self
+    }
 }
 
 extension UnsafePointer<CChar> {

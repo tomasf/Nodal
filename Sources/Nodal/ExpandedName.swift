@@ -25,6 +25,17 @@ public struct ExpandedName: Hashable, Sendable {
     }
 }
 
+extension ExpandedName: CustomDebugStringConvertible {
+    // The Clark notation of this expanded name
+    public var debugDescription: String {
+        if let namespaceName {
+            "{\(namespaceName)}\(localName)"
+        } else {
+            localName
+        }
+    }
+}
+
 internal extension ExpandedName {
     // Returns nil if the namespace could not be resolved
     func qualifiedAttributeName(in element: Node) -> String? {
