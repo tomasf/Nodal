@@ -30,7 +30,7 @@ public struct XMLEncodableMacro: MemberMacro, ExtensionMacro {
 
         for property in declaration.variableDeclarations {
             guard let binding = property.bindings.first,
-                  let propertyName = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text,
+                  let propertyName = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text
             else { continue }
 
             if let macro = property.attribute(named: "Element") {
