@@ -211,7 +211,7 @@ extension DeclGroupSyntax {
     var variableDeclarations: [VariableDeclSyntax] {
         memberBlock.members
             .compactMap { $0.decl.as(VariableDeclSyntax.self) }
-            .filter { $0.bindingSpecifier.tokenKind == .keyword(.var) }
+            .filter { $0.bindingSpecifier.tokenKind == .keyword(.var) || $0.bindings.first?.initializer == nil }
     }
 }
 
