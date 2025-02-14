@@ -148,3 +148,19 @@ extension UInt64: XMLValueCodable {
         self = value
     }
 }
+
+extension RawRepresentable where RawValue: XMLValueEncodable {
+    public var xmlStringValue: String {
+        rawValue.xmlStringValue
+    }
+}
+
+extension RawRepresentable where RawValue: XMLValueDecodable {
+    public init(xmlStringValue string: String) throws {
+        let raw = try RawValue(xmlStringValue: string)
+        guard let value = Self(rawValue: raw) else {
+            throw XMLValueError.invalidFormat(expected: "\(String(describing: Self.self))", found: string)
+        }
+        self = value
+    }
+}
