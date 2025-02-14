@@ -30,7 +30,8 @@ public struct XMLEncodableMacro: MemberMacro, ExtensionMacro {
 
         for property in declaration.variableDeclarations {
             guard let binding = property.bindings.first,
-                  let propertyName = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text else { continue }
+                  let propertyName = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text,
+            else { continue }
 
             if let macro = property.attribute(named: "Element") {
                 var elementName = macro.firstMacroArgument ?? "\"" + propertyName + "\""
@@ -113,7 +114,8 @@ public struct XMLDecodableMacro: MemberMacro, ExtensionMacro {
 
         for property in declaration.variableDeclarations {
             guard let binding = property.bindings.first,
-                  let propertyName = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text else { continue }
+                  let propertyName = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text
+            else { continue }
 
             if let macro = property.attribute(named: "Element") {
                 var elementName = macro.firstMacroArgument ?? "\"" + propertyName + "\""
@@ -207,7 +209,9 @@ public struct XMLCodableMacro: MemberMacro, ExtensionMacro {
 
 extension DeclGroupSyntax {
     var variableDeclarations: [VariableDeclSyntax] {
-        memberBlock.members.compactMap { $0.decl.as(VariableDeclSyntax.self) }
+        memberBlock.members
+            .compactMap { $0.decl.as(VariableDeclSyntax.self) }
+            .filter { $0.bindingSpecifier.tokenKind == .keyword(.var) }
     }
 }
 
