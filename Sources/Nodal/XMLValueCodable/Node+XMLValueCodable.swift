@@ -63,7 +63,7 @@ public extension Node {
     ///
     /// ## Example Usage
     /// ```swift
-    /// let weight: Double = try personNode.content() // Reads <weight>72.5</weight>
+    /// let weight: Double = try weightNode.content() // Reads <weight>72.5</weight>
     /// ```
     func content<T: XMLValueDecodable>() throws -> T {
         return try T.init(xmlStringValue: textContent.trimmed)
@@ -77,7 +77,7 @@ public extension Node {
     ///
     /// ## Example Usage
     /// ```swift
-    /// personNode.setContent(72.5) // Sets <weight>72.5</weight>
+    /// weightNode.setContent(72.5) // Sets <weight>72.5</weight>
     /// ```
     func setContent<T: XMLValueEncodable>(_ value: T) {
         textContent = value.xmlStringValue

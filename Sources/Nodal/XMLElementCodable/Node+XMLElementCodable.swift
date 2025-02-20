@@ -40,14 +40,13 @@ public extension Node {
     ///   - containerName: The optional container element name. If provided, the method searches inside this container.
     /// - Returns: An array of decoded values.
     /// - Throws:
-    ///   - `XMLElementCodableError.containerMissing` if the specified container is missing.
     ///   - `XMLElementCodableError.invalidFormat` if any element cannot be parsed.
     ///
-    func decode<T: XMLElementDecodable>(elementName name: any ElementName, containedIn containerName: String? = nil) throws -> [T] {
+    func decode<T: XMLElementDecodable>(elementName name: any ElementName, containedIn containerName: ElementName? = nil) throws -> [T] {
         let parent: Node
         if let containerName {
             guard let container = self[element: containerName] else {
-                throw XMLElementCodableError.containerMissing(containerName)
+                return []
             }
             parent = container
         } else {
@@ -76,11 +75,12 @@ public extension Node {
     /// This method creates an element for each value in `items`. If `containerName` is provided, all elements are wrapped inside that container.
     ///
     /// - Parameters:
-    ///   - items: The array of values to encode.
+    ///   - items: The array of values to encode. If this is empty, this method does nothing.
     ///   - name: The name of each XML element; either a `String` or an `ExpandedName`.
     ///   - containerName: An optional container element name; either a `String` or an `ExpandedName`. If provided, the elements are placed inside this container.
     ///
     func encode<T: XMLElementEncodable>(_ items: [T], elementName name: any ElementName, containedIn containerName: (any ElementName)? = nil) {
+        guard items.isEmpty == false else { return }
         let parent: Node
         if let containerName {
             parent = addElement(containerName)
