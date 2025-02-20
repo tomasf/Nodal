@@ -78,7 +78,7 @@ public struct XMLEncodableMacro: MemberMacro, ExtensionMacro {
 
         return [
             DeclSyntax("""
-                func encode(to element: Node) {
+                public func encode(to element: Node) {
                     \(raw: encodeStatements.joined(separator: "\n    "))
                 }
                 """)
@@ -93,9 +93,8 @@ public struct XMLEncodableMacro: MemberMacro, ExtensionMacro {
         conformingTo protocols: [TypeSyntax],
         in context: some MacroExpansionContext
     ) throws -> [ExtensionDeclSyntax] {
-        return try [
-            ExtensionDeclSyntax("extension \(type.trimmed): XMLElementEncodable {}")
-        ]
+        let ext = try ExtensionDeclSyntax("extension \(type.trimmed): XMLElementEncodable {}")
+        return [ext]
     }
 }
 
@@ -162,7 +161,7 @@ public struct XMLDecodableMacro: MemberMacro, ExtensionMacro {
 
         return [
             DeclSyntax("""
-                init(from element: Node) throws {
+                public init(from element: Node) throws {
                     \(raw: initStatements.joined(separator: "\n    "))
                 }
                 """),
@@ -176,9 +175,8 @@ public struct XMLDecodableMacro: MemberMacro, ExtensionMacro {
         conformingTo protocols: [TypeSyntax],
         in context: some MacroExpansionContext
     ) throws -> [ExtensionDeclSyntax] {
-        return try [
-            ExtensionDeclSyntax("extension \(type.trimmed): XMLElementDecodable {}")
-        ]
+        let ext = try ExtensionDeclSyntax("extension \(type.trimmed): XMLElementDecodable {}")
+        return [ext]
     }
 }
 
@@ -212,6 +210,7 @@ extension DeclGroupSyntax {
         memberBlock.members
             .compactMap { $0.decl.as(VariableDeclSyntax.self) }
             .filter { $0.bindingSpecifier.tokenKind == .keyword(.var) || $0.bindings.first?.initializer == nil }
+            .filter { !$0.modifiers.contains(where: { $0.name.tokenKind == .keyword(.static) }) }
     }
 }
 
