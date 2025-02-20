@@ -84,4 +84,21 @@ struct HierarchyTests {
         let c = root.addCDATA("c", at: .after(b))
         #expect(Array(root.children) == [b, c, a], "Order of children")
     }
+
+    @Test
+    func descendants() throws {
+        let doc = Document()
+        let root = doc.makeDocumentElement(name: "root")
+        let a = root.addElement("a")
+        let c = a.addElement("c")
+        let t1 = c.addText("t1")
+        let t2 = c.addText("t2")
+        let x = root.addElement("x")
+        let b = root.addElement("b")
+        let comment = b.addComment("comment")
+
+        #expect(Array(doc.node.descendants) == [doc.node, root, a, c, t1, t2, x, b, comment])
+        #expect(Array(a.descendants) == [a, c, t1, t2])
+        #expect(Array(c.descendants) == [c, t1, t2])
+    }
 }
