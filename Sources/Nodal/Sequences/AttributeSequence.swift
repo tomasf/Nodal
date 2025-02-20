@@ -12,9 +12,8 @@ internal struct AttributeSequence: Sequence, IteratorProtocol {
     mutating func next() -> pugi.xml_attribute? {
         guard !attribute.empty() else { return nil }
 
-        let current = attribute
-        self.attribute = current.next_attribute()
-        return current
+        defer { attribute = attribute.next_attribute() }
+        return attribute
     }
 }
 
