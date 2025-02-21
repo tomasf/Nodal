@@ -181,6 +181,6 @@ struct NamespaceTests {
         #expect(copy.expandedName.namespaceName == "foo")
         #expect(bCopy[attribute: "f:z"] == "test")
 
-        #expect(a.xmlString() == copy.xmlString())
+        #expect(try a.xmlString() == copy.xmlString())
     }
 }

@@ -34,7 +34,7 @@ public extension XPathQuery {
 
 /// Represents a result node from an XPath query.
 ///
-/// An `XPathResultNode` can represent:
+/// An `XPathNode` can represent:
 /// - A node in the XML document.
 /// - An attribute of a node in the XML document.
 /// - A null result, indicating no node or attribute is present.
@@ -43,7 +43,7 @@ public extension XPathQuery {
 /// - If `node` is non-`nil` and `attributeName` is `nil`, the result represents a node in the XML document.
 /// - If both `node` and `attributeName` are non-`nil`, the result represents an attribute of a node.
 /// - If both `node` and `attributeName` are `nil`, the result represents a null result.
-public struct XPathResultNode: CustomDebugStringConvertible {
+public struct XPathNode: CustomDebugStringConvertible {
     private let xPathNode: pugi.xpath_node
     private let document: Document
 
