@@ -2,18 +2,33 @@ import Foundation
 import pugixml
 
 internal class PendingNameRecord {
-    var elementName: (ExpandedName, placeholder: String)?
+    var elementName: ExpandedName?
     var attributes: [ExpandedName: String] = [:] // value = qName
     var ancestors: Set<pugi.xml_node> = .init(minimumCapacity: 8) // Ancestors, including the element itself
 
     private static let pendingPrefix = "__pending"
 
-    init(element: Node) {
-        var node = element.node
+    private init(
+        elementName: ExpandedName? = nil,
+        attributes: [ExpandedName: String] = [:],
+        node element: pugi.xml_node
+    ) {
+        self.elementName = elementName
+        self.attributes = attributes
+
+        var node = element
         while !node.empty() {
             ancestors.insert(node)
             node = node.parent()
         }
+    }
+
+    convenience init(element: Node) {
+        self.init(node: element.node)
+    }
+
+    func copy(for owner: pugi.xml_node) -> PendingNameRecord {
+        PendingNameRecord(elementName: elementName, attributes: attributes, node: owner)
     }
 
     func updateAncestors(with element: pugi.xml_node) {
@@ -36,7 +51,7 @@ internal class PendingNameRecord {
     // Returns placeholder qualified name
     func addUnresolvedElementName(_ name: ExpandedName, for element: Node) -> String {
         let placeholder = pendingPlaceholder(for: name)
-        elementName = (name, placeholder)
+        elementName = name
         return placeholder
     }
 
@@ -62,7 +77,7 @@ internal class PendingNameRecord {
 
     var namespaceNames: Set<String> {
         var names = Set<String>()
-        if let (elementName, _) = elementName, let namespaceName = elementName.namespaceName {
+        if let elementName, let namespaceName = elementName.namespaceName {
             names.insert(namespaceName)
         }
         for expandedName in attributes.keys {
@@ -75,7 +90,7 @@ internal class PendingNameRecord {
 
     // Returns true if the element is now completely resolved and the record can be removed
     func attemptResolution(for element: pugi.xml_node, in document: Document) -> Bool {
-        if let (elementName, _) = elementName,
+        if let elementName,
            let namespaceName = elementName.namespaceName,
            let prefix = document.namespacePrefix(forName: namespaceName, in: element)
         {

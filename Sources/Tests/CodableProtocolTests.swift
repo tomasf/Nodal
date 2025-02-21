@@ -121,10 +121,8 @@ struct CodableProtocolTests {
         let root = doc.makeDocumentElement(name: "directory")
         root.declareNamespace("foo", forPrefix: "f")
         directory.encode(to: root)
-        print(try doc.xmlString())
 
         let newDirectory: Root = try doc.node.decode(elementName: "directory")
-
         #expect(directory == newDirectory)
     }
 }
