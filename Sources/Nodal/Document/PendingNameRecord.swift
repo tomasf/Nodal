@@ -2,9 +2,9 @@ import Foundation
 import pugixml
 
 internal class PendingNameRecord {
-    var elementName: ExpandedName?
+    var elementName: (ExpandedName, placeholder: String)?
     var attributes: [ExpandedName: String] = [:] // value = qName
-    var ancestors: Set<pugi.xml_node> = .init(minimumCapacity: 8) // Ancestors, including the element iself
+    var ancestors: Set<pugi.xml_node> = .init(minimumCapacity: 8) // Ancestors, including the element itself
 
     private static let pendingPrefix = "__pending"
 
@@ -29,10 +29,15 @@ internal class PendingNameRecord {
         ancestors.contains(node.node)
     }
 
-    // Returns placeholder prefix part
+    private func pendingPlaceholder(for name: ExpandedName) -> String {
+        Self.pendingPrefix + "_" + UUID().uuidString + ":" + name.localName
+    }
+
+    // Returns placeholder qualified name
     func addUnresolvedElementName(_ name: ExpandedName, for element: Node) -> String {
-        elementName = name
-        return Self.pendingPrefix
+        let placeholder = pendingPlaceholder(for: name)
+        elementName = (name, placeholder)
+        return placeholder
     }
 
     func pendingExpandedAttributeName(for placeholderQName: String) -> ExpandedName? {
@@ -45,13 +50,8 @@ internal class PendingNameRecord {
             // A pending element for this expanded name already exists, so just replace its value
             return existingQName
         }
-        var counter = 0
-        var pendingPrefix = Self.pendingPrefix
-        while element[attribute: String(prefix: pendingPrefix, localPart: name.localName)] != nil {
-            counter += 1
-            pendingPrefix = Self.pendingPrefix + "_\(counter)"
-        }
-        let qName = String(prefix: pendingPrefix, localPart: name.localName)
+
+        let qName = pendingPlaceholder(for: name)
         attributes[name] = qName
         return qName
     }
@@ -62,7 +62,7 @@ internal class PendingNameRecord {
 
     var namespaceNames: Set<String> {
         var names = Set<String>()
-        if let elementName = elementName, let namespaceName = elementName.namespaceName {
+        if let (elementName, _) = elementName, let namespaceName = elementName.namespaceName {
             names.insert(namespaceName)
         }
         for expandedName in attributes.keys {
@@ -75,7 +75,7 @@ internal class PendingNameRecord {
 
     // Returns true if the element is now completely resolved and the record can be removed
     func attemptResolution(for element: pugi.xml_node, in document: Document) -> Bool {
-        if let elementName,
+        if let (elementName, _) = elementName,
            let namespaceName = elementName.namespaceName,
            let prefix = document.namespacePrefix(forName: namespaceName, in: element)
         {

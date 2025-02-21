@@ -101,4 +101,35 @@ struct HierarchyTests {
         #expect(Array(a.descendants) == [a, c, t1, t2])
         #expect(Array(c.descendants) == [c, t1, t2])
     }
+
+    @Test
+    func copy() throws {
+        let doc = Document()
+        let root = doc.makeDocumentElement(name: "root")
+        let a = root.addElement("a")
+        a[attribute: "foo"] = "bar"
+        let b = a.addElement("b")
+        b.textContent = "hello"
+        b[attribute: "baz"] = "qux"
+
+        let copy = a.copy(to: b, at: .first)!
+        #expect(Array(b.children)[0] == copy)
+        #expect(Array(b.children)[1].kind == .text)
+
+        #expect(copy[attribute: "foo"] == "bar")
+        #expect(copy[element: "b"]?[attribute: "baz"] == "qux")
+    }
+
+    @Test
+    func copyBetweenDocuments() throws {
+        let doc1 = Document()
+        let root = doc1.makeDocumentElement(name: "root")
+        root[attribute: "foo"] = "bar"
+
+        let doc2 = Document()
+        let root2 = root.copy(to: doc2.node)!
+        
+        #expect(doc2.documentElement == root2)
+        #expect(root2[attribute: "foo"] == "bar")
+    }
 }

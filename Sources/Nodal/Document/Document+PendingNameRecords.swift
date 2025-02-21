@@ -10,7 +10,7 @@ internal extension Document {
         let qName = String(cString: elementNode.name())
         if PendingNameRecord.qualifiedNameIndicatesPending(qName),
            let record = pendingNamespaceRecords[elementNode.internal_object()],
-           let name = record.elementName {
+           let (name, _) = record.elementName {
             return name
         }
 

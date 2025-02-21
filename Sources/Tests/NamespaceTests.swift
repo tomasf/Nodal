@@ -122,9 +122,7 @@ struct NamespaceTests {
         #expect(a[attribute: "c", namespaceName: "namespace3"] == "bar")
         #expect(document.pendingNameRecordCount == 1)
 
-        #expect(a[attribute: "__pending:c"] == "bar")
         b.declareNamespace("namespace3", forPrefix: "z")
-        #expect(a[attribute: "__pending:c"] == "bar")
         #expect(document.pendingNameRecordCount == 1)
 
         root.declareNamespace("namespace3", forPrefix: "aa")
@@ -158,5 +156,31 @@ struct NamespaceTests {
 
         #expect(doc.pendingNameRecordCount == 0)
         _ = try doc.xmlData() // Should not throw
+    }
+
+    @Test
+    func pendingNamespacesWithCopy() throws {
+        let doc = Document()
+        let root = doc.makeDocumentElement(name: "root")
+        let a = root.addElement("a", namespace: "foo")
+        let b = a.addElement("b")
+        b[attribute: "z", namespaceName: "foo"] = "test"
+        #expect(a.name.hasPrefix("__pending"))
+        #expect(a.expandedName.namespaceName == "foo")
+        #expect(b[attribute: "z", namespaceName: "foo"] == "test")
+
+        let copy = a.copy(to: root)!
+        let bCopy = copy[element: "b"]!
+        root.declareNamespace("foo", forPrefix: "f")
+        #expect(a.name == "f:a")
+        #expect(a.expandedName.namespaceName == "foo")
+        #expect(b[attribute: "z", namespaceName: "foo"] == "test")
+        #expect(b[attribute: "f:z"] == "test")
+
+        #expect(copy.name == "f:a")
+        #expect(copy.expandedName.namespaceName == "foo")
+        #expect(bCopy[attribute: "f:z"] == "test")
+
+        #expect(a.xmlString() == copy.xmlString())
     }
 }

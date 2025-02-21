@@ -25,7 +25,8 @@ internal extension ExpandedName {
             if let match = element.namespacePrefix(forName: namespaceName) {
                 prefix = match.string
             } else {
-                prefix = element.requirePendingNameRecord().addUnresolvedElementName(self, for: element)
+                let placeholder = element.requirePendingNameRecord().addUnresolvedElementName(self, for: element)
+                return placeholder
             }
         } else {
             guard element.namespaceName(forPrefix: .defaultNamespace)?.nonEmpty == nil else {
