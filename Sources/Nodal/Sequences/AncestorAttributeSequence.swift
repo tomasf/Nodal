@@ -24,9 +24,8 @@ internal struct AncestorAttributeSequence: Sequence, IteratorProtocol {
             attribute = node.first_attribute()
         }
 
-        let result = attribute
-        attribute = attribute.next_attribute()
-        return result
+        defer { attribute = attribute.next_attribute() }
+        return attribute
     }
 }
 

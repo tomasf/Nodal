@@ -25,10 +25,11 @@ internal extension ExpandedName {
             if let match = element.namespacePrefix(forName: namespaceName) {
                 prefix = match.string
             } else {
-                prefix = element.requirePendingNameRecord().addUnresolvedElementName(self, for: element)
+                let placeholder = element.requirePendingNameRecord().addUnresolvedElementName(self, for: element)
+                return placeholder
             }
         } else {
-            guard element.namespaceName(forPrefix: .defaultNamespace) == nil else {
+            guard element.namespaceName(forPrefix: .defaultNamespace)?.nonEmpty == nil else {
                 fatalError("Can't use a nil namespace when there's a default namespace in scope")
             }
             prefix = nil

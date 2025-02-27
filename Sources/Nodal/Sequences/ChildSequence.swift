@@ -12,9 +12,8 @@ internal struct ChildSequence: Sequence, IteratorProtocol {
     mutating func next() -> pugi.xml_node? {
         guard !node.empty() else { return nil }
 
-        let current = node
-        node = node.next_sibling()
-        return current
+        defer { node = node.next_sibling() }
+        return node
     }
 }
 

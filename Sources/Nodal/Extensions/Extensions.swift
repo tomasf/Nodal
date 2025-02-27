@@ -15,10 +15,18 @@ internal extension String {
             self = localPart
         }
     }
+
+    var trimmed: String {
+        trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 }
 
 public extension String {
     static let fourSpaces = "    "
+
+    var nonEmpty: String? {
+        isEmpty ? nil : self
+    }
 }
 
 extension UnsafePointer<CChar> {

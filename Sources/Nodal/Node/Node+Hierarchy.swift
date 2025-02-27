@@ -48,40 +48,38 @@ public extension Node {
         return false
     }
 
-    /// Concatenates the values of all descendant text and CDATA nodes of this node.
+    /// Gets or sets the concatenated text content of this node and all its descendant text and CDATA nodes.
     ///
-    /// - Returns: A single string containing the concatenated text of all descendant nodes of type `.text` or `.cdata`.
+    /// - Getter: Returns a single string containing the concatenated text of all descendant nodes of type `.text` or `.cdata`.
+    /// - Setter: Replaces all existing children of this node with a single text node containing the new value.
+    ///   - If the node type cannot contain text, a precondition failure occurs.
+    ///
+    /// Example:
+    /// ```xml
+    /// <person>
+    ///     <name>John</name>
+    ///     <age>30</age>
+    /// </person>
+    /// ```
+    ///
+    /// ```swift
+    /// let name = personNode.textContent // "John30"
+    /// personNode.textContent = "New Value" // Replaces all children with a single text node
+    /// ```
+    ///
+    /// - Precondition: The node must be capable of containing text.
     var textContent: String {
-        node.descendants
-            .filter { $0.type() == pugi.node_pcdata || $0.type() == pugi.node_cdata }
-            .map { String(cString: $0.value()) }
-            .joined()
-    }
-}
-
-public extension Node {
-    /// Moves this node to a new parent node at the specified position within the parent's children.
-    ///
-    /// - Parameters:
-    ///   - parent: The new parent node to which this node should be moved.
-    ///   - position: The position within the parent's children where this node should be inserted. Defaults to `.last`, adding the node as the last child of the parent.
-    /// - Returns: A Boolean value indicating whether the move was successful.
-    ///            Returns `false` if the node cannot be moved. Examples of such cases include:
-    ///            - The new parent node belongs to a different document.
-    ///            - The node is being moved to within itself, which would create an invalid structure.
-    @discardableResult
-    func move(to parent: Node, at position: Position = .last) -> Bool {
-        let records = document.pendingNameRecords(forDescendantsOf: self)
-        var destination = parent.node
-
-        if destination.insertChild(self.node, at: position).empty() {
-            return false
+        get {
+            node.descendants
+                .filter { $0.type() == pugi.node_pcdata || $0.type() == pugi.node_cdata }
+                .map { String(cString: $0.value()) }
+                .joined()
         }
-
-        for (node, record) in records {
-            record.updateAncestors(with: node)
+        nonmutating set {
+            precondition(canContainChildren(ofKind: .text), "This kind of node can't contain text")
+            removeAllChildren()
+            addText(newValue)
         }
-        return true
     }
 }
 

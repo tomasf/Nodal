@@ -1,9 +1,9 @@
 @testable import Nodal
 import Testing
 
-struct Tests {
+struct NamespaceTests {
     @Test
-    func namespaceDeclarationCache() {
+    func declarationCache() {
         let doc = Document()
         let root = doc.makeDocumentElement(name: "root")
         let a = root.addElement("a")
@@ -22,7 +22,7 @@ struct Tests {
     }
 
     @Test
-    func namespaceDeclarationCacheLoaded() throws {
+    func declarationCacheLoaded() throws {
         let doc = try Document(string: """
         <root xmlns="default">
             <a xmlns="default2" xmlns:foo="foouri">
@@ -45,7 +45,7 @@ struct Tests {
     }
 
     @Test
-    func namespaceShadowing() {
+    func shadowing() {
         let doc = Document()
         let root = doc.makeDocumentElement(name: "root")
         let sub = root.addElement("sub")
@@ -75,7 +75,27 @@ struct Tests {
     }
 
     @Test
-    func deferredNamespaceResolution() {
+    func defaultReset() throws {
+        let doc = Document()
+        let root = doc.makeDocumentElement(name: "root")
+        root.declareNamespace("foo", forPrefix: nil)
+        let sub = root.addElement("sub")
+        let leaf = sub.addElement("leaf")
+
+        // Sub inherits its default namespace from root
+        #expect(sub.expandedName.namespaceName == "foo")
+        #expect(sub[element: ExpandedName(namespaceName: "foo", localName: "leaf")] == leaf)
+        #expect(sub[element: ExpandedName(namespaceName: nil, localName: "leaf")] == nil)
+
+        // Declaring the empty namespace overrides the default namespace; sub and leaf are now in no namespace
+        sub.declareNamespace("", forPrefix: nil)
+        #expect(sub.expandedName.namespaceName == nil)
+        #expect(sub[element: ExpandedName(namespaceName: "foo", localName: "leaf")] == nil)
+        #expect(sub[element: ExpandedName(namespaceName: nil, localName: "leaf")] == leaf)
+    }
+
+    @Test
+    func deferredResolution() {
         let document = Document()
         let root = document.makeDocumentElement(name: "root")
 
@@ -102,9 +122,7 @@ struct Tests {
         #expect(a[attribute: "c", namespaceName: "namespace3"] == "bar")
         #expect(document.pendingNameRecordCount == 1)
 
-        #expect(a[attribute: "__pending:c"] == "bar")
         b.declareNamespace("namespace3", forPrefix: "z")
-        #expect(a[attribute: "__pending:c"] == "bar")
         #expect(document.pendingNameRecordCount == 1)
 
         root.declareNamespace("namespace3", forPrefix: "aa")
@@ -140,86 +158,29 @@ struct Tests {
         _ = try doc.xmlData() // Should not throw
     }
 
-    // addChild should return nil if the type of node can't be added to that parent
     @Test
-    func addChild() throws {
-        let document = Document()
-        let a = document.node.addChild(ofKind: .element)
-        #expect(a != nil)
-        guard let a else { return }
-
-        let innerDoc = a.addChild(ofKind: .document)
-        #expect(innerDoc == nil)
-
-        let innerDecl = a.addChild(ofKind: .declaration)
-        #expect(innerDecl == nil)
-
-        #expect(a.addChild(ofKind: .comment) != nil)
-        #expect(document.node.addChild(ofKind: .comment) != nil)
-    }
-
-    @Test
-    func attributes() throws {
-        let doc = Document()
-        let decl = doc.node.addChild(ofKind: .declaration)
-        let root = doc.makeDocumentElement(name: "root")
-
-        #expect(decl != nil)
-        #expect(decl!.supportsAttributes == true)
-        decl![attribute: "q2"] = "v2"
-
-        let a = root.addElement("a")
-        #expect(a.supportsAttributes == true)
-        a[attribute: "q1"] = "v1"
-        let text = a.addText("text")
-        #expect(text.supportsAttributes == false)
-
-        #expect(try doc.xmlString(options: .raw) == "<?xml q2=\"v2\"?><root><a q1=\"v1\">text</a></root>")
-    }
-
-    @Test
-    func textContent() throws {
-        let doc = try Document(string: """
-        <root>
-            foo
-            <a>
-                bar
-                <b>baz<!--comment--><![CDATA[zoing]]>biz</b>
-                doz
-            </a>
-        </root>
-""", options: [.default, .trimTextWhitespace])
-        #expect(doc.node.textContent == "foobarbazzoingbizdoz")
-    }
-
-    @Test
-    func move() throws {
+    func pendingNamespacesWithCopy() throws {
         let doc = Document()
         let root = doc.makeDocumentElement(name: "root")
-        let a = root.addElement("a")
-        let b = root.addElement("b")
-        let c = a.addComment("hello")
+        let a = root.addElement("a", namespace: "foo")
+        let b = a.addElement("b")
+        b[attribute: "z", namespaceName: "foo"] = "test"
+        #expect(a.name.hasPrefix("__pending"))
+        #expect(a.expandedName.namespaceName == "foo")
+        #expect(b[attribute: "z", namespaceName: "foo"] == "test")
 
-        #expect(c.move(to: a) == true, "Successful move")
-        //#expect(Array(a.children) == [c], "Destination has target")
-        #expect(a.move(to: b) == true, "Successful move with children")
-        //#expect(c.parent?.parent == b, "Grandparent is correct")
+        let copy = a.copy(to: root)!
+        let bCopy = copy[element: "b"]!
+        root.declareNamespace("foo", forPrefix: "f")
+        #expect(a.name == "f:a")
+        #expect(a.expandedName.namespaceName == "foo")
+        #expect(b[attribute: "z", namespaceName: "foo"] == "test")
+        #expect(b[attribute: "f:z"] == "test")
 
-        let doc2 = Document()
-        let root2 = doc2.makeDocumentElement(name: "root2")
-        #expect(c.move(to: root2) == false, "Move between documents")
-        #expect(c.move(to: c) == false, "Move to itself")
-    }
+        #expect(copy.name == "f:a")
+        #expect(copy.expandedName.namespaceName == "foo")
+        #expect(bCopy[attribute: "f:z"] == "test")
 
-    @Test
-    func addAt() throws {
-        let doc = Document()
-        let root = doc.makeDocumentElement(name: "root")
-        let a = root.addElement("a")
-        let b = root.addElement("b", at: .first)
-
-        #expect(Array(root.children) == [b, a], "Order of children")
-        let c = root.addCDATA("c", at: .after(b))
-        #expect(Array(root.children) == [b, c, a], "Order of children")
+        #expect(try a.xmlString() == copy.xmlString())
     }
 }

@@ -6,6 +6,10 @@ internal extension Document {
         pendingNamespaceRecords[element.nodePointer]
     }
 
+    func pendingNameRecord(for element: pugi.xml_node) -> PendingNameRecord? {
+        pendingNamespaceRecords[element.internal_object()]
+    }
+
     func expandedName(for elementNode: pugi.xml_node) -> ExpandedName {
         let qName = String(cString: elementNode.name())
         if PendingNameRecord.qualifiedNameIndicatesPending(qName),
@@ -30,6 +34,13 @@ internal extension Document {
 
     func removePendingNameRecord(for element: pugi.xml_node) {
         pendingNamespaceRecords[element.internal_object()] = nil
+    }
+
+    @discardableResult
+    func addPendingNameRecord(for element: pugi.xml_node, copiedFrom: PendingNameRecord) -> PendingNameRecord {
+        let record = copiedFrom.copy(for: element)
+        pendingNamespaceRecords[element.internal_object()] = record
+        return record
     }
 
     func removePendingNameRecords(withinTree ancestor: Node, excludingTarget: Bool = false) {
