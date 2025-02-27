@@ -12,7 +12,7 @@ Add Nodal as a dependency in your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/tomasf/Nodal.git", .upToNextMinor(from: "0.2.0"))
+    .package(url: "https://github.com/tomasf/Nodal.git", .upToNextMinor(from: "0.3.0"))
 ]
 ```
 
@@ -33,7 +33,7 @@ let document = Document()
 let root = document.makeDocumentElement(name: "content", defaultNamespace: "http://tomasf.se/xml/example")
 let entry = root.addElement("entry")
 entry[attribute: "key"] = "price"
-entry.appendText("499")
+entry.addText("499")
 let output = try document.xmlData()
 ```
 
