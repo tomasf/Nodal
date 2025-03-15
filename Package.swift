@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "Nodal",
+    platforms: [.iOS(.v13)],
     products: [
         .library(name: "Nodal", targets: ["Nodal"]),
     ],
