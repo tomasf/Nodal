@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 // Visits preceding siblings of the target
 internal struct PrecendingSiblingSequence: Sequence, IteratorProtocol {

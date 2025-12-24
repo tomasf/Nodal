@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 internal extension pugi.xml_node {
     // The index of this node among its qualified namesake siblings

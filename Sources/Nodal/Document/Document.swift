@@ -1,6 +1,6 @@
 import Foundation
-@_implementationOnly import pugixml
-@_implementationOnly import Bridge
+internal import pugixml
+internal import Bridge
 
 /// Represents an XML document node, providing methods for working with the document structure and serialization.
 public class Document {

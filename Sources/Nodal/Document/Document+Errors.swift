@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 public extension Document {
     /// Represents an error that occurs during the parsing of an XML document.

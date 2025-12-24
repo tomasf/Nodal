@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 internal extension String.Encoding {
     var pugiEncoding: pugi.xml_encoding {

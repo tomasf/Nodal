@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 public extension Document {
     /// Creates an XML document by parsing the given XML string.

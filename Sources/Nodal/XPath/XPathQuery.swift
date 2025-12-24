@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 /// Represents an XPath query for evaluating expressions against an XML document.
 public class XPathQuery {

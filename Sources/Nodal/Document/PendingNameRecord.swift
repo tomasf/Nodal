@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 internal class PendingNameRecord {
     var elementName: ExpandedName?

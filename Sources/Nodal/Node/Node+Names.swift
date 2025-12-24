@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 internal extension String {
     func matchesElementName(node: pugi.xml_node, in document: Document) -> Bool {
