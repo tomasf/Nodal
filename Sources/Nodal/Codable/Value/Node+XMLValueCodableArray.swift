@@ -85,3 +85,76 @@ public extension Node {
         textContent = value.xmlStringValue
     }
 }
+
+// MARK: - Date arrays (uses document.dateFormat)
+
+public extension Node {
+    /// Retrieves the value of an XML attribute and decodes it as an array of dates.
+    ///
+    /// The date format is determined by the document's ``Document/dateFormat`` property.
+    /// Values are expected to be whitespace-separated.
+    ///
+    /// - Parameter attribute: The name of the attribute; either a `String` or an `ExpandedName`.
+    /// - Returns: An array of decoded dates, or `nil` if the attribute is not present.
+    /// - Throws: `XMLValueError.invalidFormat` if the values cannot be parsed.
+    func value(forAttribute attribute: any AttributeName) throws -> [Date]? {
+        guard let string = self[attribute: attribute] else { return nil }
+        return try string
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .map { try document.dateFormat.decode($0) }
+    }
+
+    /// Retrieves the value of an XML attribute and decodes it as an array of dates.
+    ///
+    /// The date format is determined by the document's ``Document/dateFormat`` property.
+    /// If the attribute is missing, this method *throws an error*.
+    ///
+    /// - Parameter attribute: The name of the attribute; either a `String` or an `ExpandedName`.
+    /// - Returns: An array of decoded dates.
+    /// - Throws:
+    ///   - `XMLValueError.missingAttribute` if the attribute is missing.
+    ///   - `XMLValueError.invalidFormat` if the values cannot be parsed.
+    func value(forAttribute attribute: any AttributeName) throws -> [Date] {
+        guard let value: [Date] = try value(forAttribute: attribute) else {
+            throw XMLValueError.missingAttribute(attribute)
+        }
+        return value
+    }
+
+    /// Sets the value of an XML attribute with an array of dates, encoding them as a whitespace-separated list.
+    ///
+    /// The date format is determined by the document's ``Document/dateFormat`` property.
+    ///
+    /// - Parameters:
+    ///   - value: The array of dates to set, or `nil` to remove the attribute.
+    ///   - attribute: The name of the attribute; either a `String` or an `ExpandedName`.
+    func setValue(_ value: [Date]?, forAttribute attribute: any AttributeName) {
+        self[attribute: attribute] = value.map {
+            $0.map { document.dateFormat.encode($0) }.joined(separator: " ")
+        }
+    }
+
+    /// Retrieves the text content of an XML node and decodes it as an array of dates.
+    ///
+    /// The date format is determined by the document's ``Document/dateFormat`` property.
+    /// Values are expected to be whitespace-separated.
+    ///
+    /// - Returns: An array of decoded dates.
+    /// - Throws: `XMLValueError.invalidFormat` if the values cannot be parsed.
+    func content() throws -> [Date] {
+        try textContent
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .map { try document.dateFormat.decode($0) }
+    }
+
+    /// Sets the text content of an XML node with an array of dates, encoding them as a whitespace-separated list.
+    ///
+    /// The date format is determined by the document's ``Document/dateFormat`` property.
+    ///
+    /// - Parameter value: The array of dates to set.
+    func setContent(_ value: [Date]) {
+        textContent = value.map { document.dateFormat.encode($0) }.joined(separator: " ")
+    }
+}
