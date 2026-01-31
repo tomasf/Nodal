@@ -14,7 +14,7 @@ public extension Node {
     ///
     func value<T: XMLValueDecodable>(forAttribute attribute: any AttributeName) throws -> T? {
         guard let string = self[attribute: attribute] else { return nil }
-        return try T.init(xmlStringValue: string.trimmed)
+        return try T.init(xmlStringValue: string.trimmed, for: self)
     }
 
     /// Retrieves the value of an XML attribute and decodes it into a specified type.
@@ -48,133 +48,7 @@ public extension Node {
     /// personNode.setValue(nil, forAttribute: "age") // Removes the attribute
     /// ```
     func setValue<T: XMLValueEncodable>(_ value: T?, forAttribute attribute: any AttributeName) {
-        self[attribute: attribute] = value?.xmlStringValue
-    }
-}
-
-// MARK: - Data (uses document.dataFormat)
-
-public extension Node {
-    /// Retrieves the value of an XML attribute and decodes it as `Data`.
-    ///
-    /// The data format is determined by the document's ``Document/dataFormat`` property.
-    ///
-    /// - Parameter attribute: The name of the attribute; either a `String` or an `ExpandedName`.
-    /// - Returns: The decoded data, or `nil` if the attribute is not present.
-    /// - Throws: `XMLValueError.invalidFormat` if the value cannot be parsed.
-    func value(forAttribute attribute: any AttributeName) throws -> Data? {
-        guard let string = self[attribute: attribute] else { return nil }
-        return try document.dataFormat.decode(string.trimmed)
-    }
-
-    /// Retrieves the value of an XML attribute and decodes it as `Data`.
-    ///
-    /// The data format is determined by the document's ``Document/dataFormat`` property.
-    /// If the attribute is missing, this method *throws an error*.
-    ///
-    /// - Parameter attribute: The name of the attribute.
-    /// - Returns: The decoded data.
-    /// - Throws:
-    ///   - `XMLValueError.missingAttribute` if the attribute is missing.
-    ///   - `XMLValueError.invalidFormat` if the value cannot be parsed.
-    func value(forAttribute attribute: any AttributeName) throws -> Data {
-        guard let value: Data = try value(forAttribute: attribute) else {
-            throw XMLValueError.missingAttribute(attribute)
-        }
-        return value
-    }
-
-    /// Sets the value of an XML attribute by encoding `Data` to a string.
-    ///
-    /// The data format is determined by the document's ``Document/dataFormat`` property.
-    ///
-    /// - Parameters:
-    ///   - value: The data to set, or `nil` to remove the attribute.
-    ///   - attribute: The name of the attribute; either a `String` or an `ExpandedName`.
-    func setValue(_ value: Data?, forAttribute attribute: any AttributeName) {
-        self[attribute: attribute] = value.map { document.dataFormat.encode($0) }
-    }
-
-    /// Retrieves the text content of an XML node and decodes it as `Data`.
-    ///
-    /// The data format is determined by the document's ``Document/dataFormat`` property.
-    ///
-    /// - Returns: The decoded data.
-    /// - Throws: `XMLValueError.invalidFormat` if the value cannot be parsed.
-    func content() throws -> Data {
-        try document.dataFormat.decode(textContent.trimmed)
-    }
-
-    /// Sets the text content of an XML node by encoding `Data` to a string.
-    ///
-    /// The data format is determined by the document's ``Document/dataFormat`` property.
-    ///
-    /// - Parameter value: The data to set as text content.
-    func setContent(_ value: Data) {
-        textContent = document.dataFormat.encode(value)
-    }
-}
-
-// MARK: - Date (uses document.dateFormat)
-
-public extension Node {
-    /// Retrieves the value of an XML attribute and decodes it as a `Date`.
-    ///
-    /// The date format is determined by the document's ``Document/dateFormat`` property.
-    ///
-    /// - Parameter attribute: The name of the attribute; either a `String` or an `ExpandedName`.
-    /// - Returns: The decoded date, or `nil` if the attribute is not present.
-    /// - Throws: `XMLValueError.invalidFormat` if the value cannot be parsed.
-    func value(forAttribute attribute: any AttributeName) throws -> Date? {
-        guard let string = self[attribute: attribute] else { return nil }
-        return try document.dateFormat.decode(string.trimmed)
-    }
-
-    /// Retrieves the value of an XML attribute and decodes it as a `Date`.
-    ///
-    /// The date format is determined by the document's ``Document/dateFormat`` property.
-    /// If the attribute is missing, this method *throws an error*.
-    ///
-    /// - Parameter attribute: The name of the attribute.
-    /// - Returns: The decoded date.
-    /// - Throws:
-    ///   - `XMLValueError.missingAttribute` if the attribute is missing.
-    ///   - `XMLValueError.invalidFormat` if the value cannot be parsed.
-    func value(forAttribute attribute: any AttributeName) throws -> Date {
-        guard let value: Date = try value(forAttribute: attribute) else {
-            throw XMLValueError.missingAttribute(attribute)
-        }
-        return value
-    }
-
-    /// Sets the value of an XML attribute by encoding a `Date` to a string.
-    ///
-    /// The date format is determined by the document's ``Document/dateFormat`` property.
-    ///
-    /// - Parameters:
-    ///   - value: The date to set, or `nil` to remove the attribute.
-    ///   - attribute: The name of the attribute; either a `String` or an `ExpandedName`.
-    func setValue(_ value: Date?, forAttribute attribute: any AttributeName) {
-        self[attribute: attribute] = value.map { document.dateFormat.encode($0) }
-    }
-
-    /// Retrieves the text content of an XML node and decodes it as a `Date`.
-    ///
-    /// The date format is determined by the document's ``Document/dateFormat`` property.
-    ///
-    /// - Returns: The decoded date.
-    /// - Throws: `XMLValueError.invalidFormat` if the value cannot be parsed.
-    func content() throws -> Date {
-        try document.dateFormat.decode(textContent.trimmed)
-    }
-
-    /// Sets the text content of an XML node by encoding a `Date` to a string.
-    ///
-    /// The date format is determined by the document's ``Document/dateFormat`` property.
-    ///
-    /// - Parameter value: The date to set as text content.
-    func setContent(_ value: Date) {
-        textContent = document.dateFormat.encode(value)
+        self[attribute: attribute] = value?.xmlStringValue(for: self)
     }
 }
 
@@ -192,7 +66,7 @@ public extension Node {
     /// let weight: Double = try weightNode.content() // Reads <weight>72.5</weight>
     /// ```
     func content<T: XMLValueDecodable>() throws -> T {
-        return try T.init(xmlStringValue: textContent.trimmed)
+        return try T.init(xmlStringValue: textContent.trimmed, for: self)
     }
 
     /// Sets the text content of an XML node by encoding it to a string.
@@ -206,6 +80,6 @@ public extension Node {
     /// weightNode.setContent(72.5) // Sets <weight>72.5</weight>
     /// ```
     func setContent<T: XMLValueEncodable>(_ value: T) {
-        textContent = value.xmlStringValue
+        textContent = value.xmlStringValue(for: self)
     }
 }

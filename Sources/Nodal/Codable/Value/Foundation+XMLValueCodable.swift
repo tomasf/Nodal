@@ -1,14 +1,14 @@
 import Foundation
 
 extension String: XMLValueCodable {
-    public var xmlStringValue: String { self }
-    public init(xmlStringValue: String) throws { self = xmlStringValue }
+    public func xmlStringValue(for node: Node) -> String { self }
+    public init(xmlStringValue: String, for node: Node) throws { self = xmlStringValue }
 }
 
 extension Bool: XMLValueCodable {
-    public var xmlStringValue: String { self ? "true" : "false" }
+    public func xmlStringValue(for node: Node) -> String { self ? "true" : "false" }
 
-    public init(xmlStringValue: String) throws {
+    public init(xmlStringValue: String, for node: Node) throws {
         switch xmlStringValue {
         case "true", "1": self = true
         case "false", "0": self = false
@@ -18,9 +18,9 @@ extension Bool: XMLValueCodable {
 }
 
 extension Double: XMLValueCodable {
-    public var xmlStringValue: String { String(self) }
+    public func xmlStringValue(for node: Node) -> String { String(self) }
 
-    public init(xmlStringValue: String) throws {
+    public init(xmlStringValue: String, for node: Node) throws {
         guard let double = Double(xmlStringValue) else {
             throw XMLValueError.invalidFormat(expected: "Double", found: xmlStringValue)
         }
@@ -29,9 +29,9 @@ extension Double: XMLValueCodable {
 }
 
 extension Float: XMLValueCodable {
-    public var xmlStringValue: String { String(self) }
+    public func xmlStringValue(for node: Node) -> String { String(self) }
 
-    public init(xmlStringValue: String) throws {
+    public init(xmlStringValue: String, for node: Node) throws {
         guard let float = Float(xmlStringValue) else {
             throw XMLValueError.invalidFormat(expected: "Float", found: xmlStringValue)
         }
@@ -40,9 +40,9 @@ extension Float: XMLValueCodable {
 }
 
 extension Int: XMLValueCodable {
-    public var xmlStringValue: String { String(self) }
+    public func xmlStringValue(for node: Node) -> String { String(self) }
 
-    public init(xmlStringValue: String) throws {
+    public init(xmlStringValue: String, for node: Node) throws {
         guard let int = Int(xmlStringValue) else {
             throw XMLValueError.invalidFormat(expected: "Int", found: xmlStringValue)
         }
@@ -51,9 +51,9 @@ extension Int: XMLValueCodable {
 }
 
 extension Int8: XMLValueCodable {
-    public var xmlStringValue: String { String(self) }
+    public func xmlStringValue(for node: Node) -> String { String(self) }
 
-    public init(xmlStringValue: String) throws {
+    public init(xmlStringValue: String, for node: Node) throws {
         guard let value = Int8(xmlStringValue) else {
             throw XMLValueError.invalidFormat(expected: "Int8", found: xmlStringValue)
         }
@@ -62,9 +62,9 @@ extension Int8: XMLValueCodable {
 }
 
 extension Int16: XMLValueCodable {
-    public var xmlStringValue: String { String(self) }
+    public func xmlStringValue(for node: Node) -> String { String(self) }
 
-    public init(xmlStringValue: String) throws {
+    public init(xmlStringValue: String, for node: Node) throws {
         guard let value = Int16(xmlStringValue) else {
             throw XMLValueError.invalidFormat(expected: "Int16", found: xmlStringValue)
         }
@@ -73,9 +73,9 @@ extension Int16: XMLValueCodable {
 }
 
 extension Int32: XMLValueCodable {
-    public var xmlStringValue: String { String(self) }
+    public func xmlStringValue(for node: Node) -> String { String(self) }
 
-    public init(xmlStringValue: String) throws {
+    public init(xmlStringValue: String, for node: Node) throws {
         guard let value = Int32(xmlStringValue) else {
             throw XMLValueError.invalidFormat(expected: "Int32", found: xmlStringValue)
         }
@@ -84,9 +84,9 @@ extension Int32: XMLValueCodable {
 }
 
 extension Int64: XMLValueCodable {
-    public var xmlStringValue: String { String(self) }
+    public func xmlStringValue(for node: Node) -> String { String(self) }
 
-    public init(xmlStringValue: String) throws {
+    public init(xmlStringValue: String, for node: Node) throws {
         guard let value = Int64(xmlStringValue) else {
             throw XMLValueError.invalidFormat(expected: "Int64", found: xmlStringValue)
         }
@@ -95,9 +95,9 @@ extension Int64: XMLValueCodable {
 }
 
 extension UInt: XMLValueCodable {
-    public var xmlStringValue: String { String(self) }
+    public func xmlStringValue(for node: Node) -> String { String(self) }
 
-    public init(xmlStringValue: String) throws {
+    public init(xmlStringValue: String, for node: Node) throws {
         guard let value = UInt(xmlStringValue) else {
             throw XMLValueError.invalidFormat(expected: "UInt", found: xmlStringValue)
         }
@@ -106,9 +106,9 @@ extension UInt: XMLValueCodable {
 }
 
 extension UInt8: XMLValueCodable {
-    public var xmlStringValue: String { String(self) }
+    public func xmlStringValue(for node: Node) -> String { String(self) }
 
-    public init(xmlStringValue: String) throws {
+    public init(xmlStringValue: String, for node: Node) throws {
         guard let value = UInt8(xmlStringValue) else {
             throw XMLValueError.invalidFormat(expected: "UInt8", found: xmlStringValue)
         }
@@ -117,9 +117,9 @@ extension UInt8: XMLValueCodable {
 }
 
 extension UInt16: XMLValueCodable {
-    public var xmlStringValue: String { String(self) }
+    public func xmlStringValue(for node: Node) -> String { String(self) }
 
-    public init(xmlStringValue: String) throws {
+    public init(xmlStringValue: String, for node: Node) throws {
         guard let value = UInt16(xmlStringValue) else {
             throw XMLValueError.invalidFormat(expected: "UInt16", found: xmlStringValue)
         }
@@ -128,9 +128,9 @@ extension UInt16: XMLValueCodable {
 }
 
 extension UInt32: XMLValueCodable {
-    public var xmlStringValue: String { String(self) }
+    public func xmlStringValue(for node: Node) -> String { String(self) }
 
-    public init(xmlStringValue: String) throws {
+    public init(xmlStringValue: String, for node: Node) throws {
         guard let value = UInt32(xmlStringValue) else {
             throw XMLValueError.invalidFormat(expected: "UInt32", found: xmlStringValue)
         }
@@ -139,9 +139,9 @@ extension UInt32: XMLValueCodable {
 }
 
 extension UInt64: XMLValueCodable {
-    public var xmlStringValue: String { String(self) }
+    public func xmlStringValue(for node: Node) -> String { String(self) }
 
-    public init(xmlStringValue: String) throws {
+    public init(xmlStringValue: String, for node: Node) throws {
         guard let value = UInt64(xmlStringValue) else {
             throw XMLValueError.invalidFormat(expected: "UInt64", found: xmlStringValue)
         }
@@ -150,9 +150,9 @@ extension UInt64: XMLValueCodable {
 }
 
 extension UUID: XMLValueCodable {
-    public var xmlStringValue: String { uuidString }
+    public func xmlStringValue(for node: Node) -> String { uuidString }
 
-    public init(xmlStringValue: String) throws {
+    public init(xmlStringValue: String, for node: Node) throws {
         guard let value = UUID(uuidString: xmlStringValue) else {
             throw XMLValueError.invalidFormat(expected: "UUID", found: xmlStringValue)
         }
@@ -161,9 +161,9 @@ extension UUID: XMLValueCodable {
 }
 
 extension URL: XMLValueCodable {
-    public var xmlStringValue: String { absoluteString }
+    public func xmlStringValue(for node: Node) -> String { absoluteString }
 
-    public init(xmlStringValue: String) throws {
+    public init(xmlStringValue: String, for node: Node) throws {
         guard let url = URL(string: xmlStringValue) else {
             throw XMLValueError.invalidFormat(expected: "URL", found: xmlStringValue)
         }
@@ -171,15 +171,35 @@ extension URL: XMLValueCodable {
     }
 }
 
+extension Date: XMLValueCodable {
+    public func xmlStringValue(for node: Node) -> String {
+        node.document.dateFormat.encode(self)
+    }
+
+    public init(xmlStringValue: String, for node: Node) throws {
+        self = try node.document.dateFormat.decode(xmlStringValue)
+    }
+}
+
+extension Data: XMLValueCodable {
+    public func xmlStringValue(for node: Node) -> String {
+        node.document.dataFormat.encode(self)
+    }
+
+    public init(xmlStringValue: String, for node: Node) throws {
+        self = try node.document.dataFormat.decode(xmlStringValue)
+    }
+}
+
 extension RawRepresentable where RawValue: XMLValueEncodable {
-    public var xmlStringValue: String {
-        rawValue.xmlStringValue
+    public func xmlStringValue(for node: Node) -> String {
+        rawValue.xmlStringValue(for: node)
     }
 }
 
 extension RawRepresentable where RawValue: XMLValueDecodable {
-    public init(xmlStringValue string: String) throws {
-        let raw = try RawValue(xmlStringValue: string)
+    public init(xmlStringValue string: String, for node: Node) throws {
+        let raw = try RawValue(xmlStringValue: string, for: node)
         guard let value = Self(rawValue: raw) else {
             throw XMLValueError.invalidFormat(expected: "\(String(describing: Self.self))", found: string)
         }
