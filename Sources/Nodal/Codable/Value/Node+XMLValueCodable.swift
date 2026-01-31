@@ -8,11 +8,25 @@ public extension Node {
     /// This method attempts to decode the value of the given attribute into the requested type.
     /// If the attribute is missing, it returns `nil`.
     ///
-    /// - Parameter attribute: The name of the attribute; either a `String` or an `ExpandedName`.
+    /// - Parameter attribute: The name of the attribute.
     /// - Returns: The decoded value, or `nil` if the attribute is not present.
     /// - Throws: `XMLValueError.invalidFormat` if the value cannot be parsed.
     ///
-    func value<T: XMLValueDecodable>(forAttribute attribute: any AttributeName) throws -> T? {
+    func value<T: XMLValueDecodable>(forAttribute attribute: String) throws -> T? {
+        guard let string = self[attribute: attribute] else { return nil }
+        return try T.init(xmlStringValue: string.trimmed, for: self)
+    }
+
+    /// Retrieves the value of an XML attribute and decodes it into a specified type.
+    ///
+    /// This method attempts to decode the value of the given attribute into the requested type.
+    /// If the attribute is missing, it returns `nil`.
+    ///
+    /// - Parameter attribute: The expanded name of the attribute.
+    /// - Returns: The decoded value, or `nil` if the attribute is not present.
+    /// - Throws: `XMLValueError.invalidFormat` if the value cannot be parsed.
+    ///
+    func value<T: XMLValueDecodable>(forAttribute attribute: ExpandedName) throws -> T? {
         guard let string = self[attribute: attribute] else { return nil }
         return try T.init(xmlStringValue: string.trimmed, for: self)
     }
@@ -27,9 +41,26 @@ public extension Node {
     ///   - `XMLValueError.missingAttribute` if the attribute is missing.
     ///   - `XMLValueError.invalidFormat` if the value cannot be parsed.
     ///
-    func value<T: XMLValueDecodable>(forAttribute attribute: any AttributeName) throws -> T {
+    func value<T: XMLValueDecodable>(forAttribute attribute: String) throws -> T {
         guard let value: T = try value(forAttribute: attribute) else {
             throw XMLValueError.missingAttribute(attribute)
+        }
+        return value
+    }
+
+    /// Retrieves the value of an XML attribute and decodes it into a specified type.
+    ///
+    /// If the attribute is missing, this method *throws an error*.
+    ///
+    /// - Parameter attribute: The expanded name of the attribute.
+    /// - Returns: The decoded value.
+    /// - Throws:
+    ///   - `XMLValueError.missingExpandedAttribute` if the attribute is missing.
+    ///   - `XMLValueError.invalidFormat` if the value cannot be parsed.
+    ///
+    func value<T: XMLValueDecodable>(forAttribute attribute: ExpandedName) throws -> T {
+        guard let value: T = try value(forAttribute: attribute) else {
+            throw XMLValueError.missingExpandedAttribute(attribute)
         }
         return value
     }
@@ -40,14 +71,29 @@ public extension Node {
     ///
     /// - Parameters:
     ///   - value: The new value to set, or `nil` to remove the attribute.
-    ///   - attribute: The name of the attribute; either a `String` or an `ExpandedName`.
+    ///   - attribute: The name of the attribute.
     ///
     /// ## Example Usage
     /// ```swift
     /// personNode.setValue(25, forAttribute: "age") // Sets age="25"
     /// personNode.setValue(nil, forAttribute: "age") // Removes the attribute
     /// ```
-    func setValue<T: XMLValueEncodable>(_ value: T?, forAttribute attribute: any AttributeName) {
+    func setValue<T: XMLValueEncodable>(_ value: T?, forAttribute attribute: String) {
+        self[attribute: attribute] = value?.xmlStringValue(for: self)
+    }
+
+    /// Sets the value of an XML attribute by encoding it to a string.
+    ///
+    /// - Parameters:
+    ///   - value: The new value to set, or `nil` to remove the attribute.
+    ///   - attribute: The expanded name of the attribute.
+    ///
+    /// ## Example Usage
+    /// ```swift
+    /// personNode.setValue(25, forAttribute: "age") // Sets age="25"
+    /// personNode.setValue(nil, forAttribute: "age") // Removes the attribute
+    /// ```
+    func setValue<T: XMLValueEncodable>(_ value: T?, forAttribute attribute: ExpandedName) {
         self[attribute: attribute] = value?.xmlStringValue(for: self)
     }
 }

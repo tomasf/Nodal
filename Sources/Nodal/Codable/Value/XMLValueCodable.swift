@@ -48,6 +48,6 @@ internal extension Array where Element: XMLValueEncodable {
 
 public enum XMLValueError: Error {
     case invalidFormat(expected: String, found: String)
-    case missingAttribute (any AttributeName)
-    case missingExpandedAttribute (ExpandedName)
+    case missingAttribute(String)
+    case missingExpandedAttribute(ExpandedName)
 }
