@@ -17,16 +17,51 @@ public struct Node {
 
 extension Node: CustomDebugStringConvertible {
     public var debugDescription: String {
+        let pointer = String(format: "%p", Int(bitPattern: node.internal_object()))
+        return "Node \(pointer): \(debugContent)"
+    }
+
+    internal var debugContent: String {
         switch kind {
-        case .element: "Element <\(name)>"
-        case .text: "Text \"\(value)\""
-        case .cdata: "CDATA \"\(value)\""
-        case .comment: "Comment <!--\(value)-->"
-        case .doctype: "Document type declaration <!DOCTYPE \(value)>"
-        case .processingInstruction: "PI <?\(name) \(value)?>"
-        case .declaration: "Declaration <?\(name)...?>"
-        case .document: "Document"
+        case .element:
+            var result = "<\(name)"
+            for (attrName, attrValue) in attributes {
+                result += " \(attrName)=\"\(attrValue)\""
+            }
+            result += ">"
+            return result
+        case .text:
+            return "Text \"\(value.truncatedForDebug(maxLength: 50))\""
+        case .cdata:
+            return "CDATA \"\(value.truncatedForDebug(maxLength: 50))\""
+        case .comment:
+            return "<!--\(value.truncatedForDebug(maxLength: 50))-->"
+        case .doctype:
+            return "<!DOCTYPE \(value)>"
+        case .processingInstruction:
+            return "<?\(name) \(value)?>"
+        case .declaration:
+            var result = "<?\(name)"
+            for (attrName, attrValue) in attributes {
+                result += " \(attrName)=\"\(attrValue)\""
+            }
+            result += "?>"
+            return result
+        case .document:
+            for child in node.children where child.type() == pugi.node_element {
+                return "Document (root: <\(String(cString: child.name()))>)"
+            }
+            return "Document (empty)"
         }
+    }
+}
+
+private extension String {
+    func truncatedForDebug(maxLength: Int) -> String {
+        if count <= maxLength {
+            return self
+        }
+        return String(prefix(maxLength)) + "…"
     }
 }
 

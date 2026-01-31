@@ -23,6 +23,31 @@ public class Document {
     }
 }
 
+extension Document: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        let pointer = String(format: "%p", Int(bitPattern: pugiDocument.asNode.internal_object()))
+        var parts: [String] = []
+
+        for child in node.children {
+            switch child.kind {
+            case .declaration, .doctype, .element:
+                parts.append(child.debugContent)
+            case .comment:
+                parts.append("<!--...-->")
+            case .processingInstruction:
+                parts.append("<?\(child.name)...?>")
+            default:
+                break
+            }
+        }
+
+        if parts.isEmpty {
+            return "Document \(pointer): (empty)"
+        }
+        return "Document \(pointer): \(parts.joined(separator: " "))"
+    }
+}
+
 internal extension Document {
     // Create a Nodal Node for a pugi node
     func node(for pugiNode: pugi.xml_node) -> Node {
