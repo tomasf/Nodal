@@ -111,13 +111,8 @@ struct XPathTests {
     }
 
     // MARK: - Variables
-    // BUG: These tests expose a memory corruption issue where the xpath_variable_set is created
-    // as a local variable in XPathQuery.init and goes out of scope after initialization.
-    // However, pugixml holds a reference to the variable set, causing use-after-free when
-    // the query is evaluated. The fix requires storing the variable set as a member of XPathQuery.
-    // These tests crash the process (SIGABRT) rather than failing gracefully.
 
-    @Test(.disabled("BUG: xpath_variable_set goes out of scope - crashes with SIGABRT"))
+    @Test
     func queryWithStringVariable() throws {
         let doc = try Document(string: "<root><book category=\"fiction\"/><book category=\"science\"/></root>")
         let query = try XPathQuery("//book[@category = $cat]", variables: ["cat": "fiction"])
@@ -126,7 +121,7 @@ struct XPathTests {
         #expect(results[0].node?[attribute: "category"] == "fiction")
     }
 
-    @Test(.disabled("BUG: xpath_variable_set goes out of scope - crashes with SIGABRT"))
+    @Test
     func queryWithIntVariable() throws {
         let doc = try Document(string: "<root><item pos=\"1\"/><item pos=\"2\"/><item pos=\"3\"/></root>")
         let query = try XPathQuery("//item[@pos = $position]", variables: ["position": 2])
@@ -135,7 +130,7 @@ struct XPathTests {
         #expect(results[0].node?[attribute: "pos"] == "2")
     }
 
-    @Test(.disabled("BUG: xpath_variable_set goes out of scope - crashes with SIGABRT"))
+    @Test
     func queryWithDoubleVariable() throws {
         let doc = try Document(string: "<root><price value=\"9.99\"/><price value=\"19.99\"/></root>")
         let query = try XPathQuery("//price[@value > $min]", variables: ["min": 10.0])

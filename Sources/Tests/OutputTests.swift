@@ -105,15 +105,17 @@ struct OutputTests {
         let root = doc.makeDocumentElement(name: "root")
         _ = root.addElement("child", namespace: "http://undeclared.example.com")
 
-        var threwExpectedError = false
+        // Note: More idiomatic test code triggers Swift 6.2 compiler bug (rdar://FB...).
+        // Using explicit error extraction as workaround.
+        var caughtNamespaces: Set<String>?
         do {
             _ = try doc.xmlData()
-        } catch let error as Document.OutputError {
-            if case .undeclaredNamespaces(let namespaces) = error {
-                threwExpectedError = namespaces.contains("http://undeclared.example.com")
+        } catch {
+            if case Document.OutputError.undeclaredNamespaces(let ns) = error {
+                caughtNamespaces = ns
             }
         }
-        #expect(threwExpectedError)
+        #expect(caughtNamespaces?.contains("http://undeclared.example.com") == true)
     }
 
     @Test
