@@ -18,6 +18,15 @@ public class Document {
     /// The default value is ``XMLDateFormat/iso8601``.
     public var dateFormat: XMLDateFormat = .iso8601
 
+    /// The format used for encoding and decoding `Data` values.
+    ///
+    /// This property affects how binary data is serialized to and from XML
+    /// when using methods like `value(forAttribute:)`, `setValue(_:forAttribute:)`,
+    /// `content()`, and `setContent()` on nodes belonging to this document.
+    ///
+    /// The default value is ``XMLDataFormat/base64``.
+    public var dataFormat: XMLDataFormat = .base64
+
     /// Creates a new, empty XML document.
     ///
     /// - Note: This initializer creates a document with no content.

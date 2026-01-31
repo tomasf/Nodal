@@ -171,17 +171,6 @@ extension URL: XMLValueCodable {
     }
 }
 
-extension Data: XMLValueCodable {
-    public var xmlStringValue: String { base64EncodedString() }
-
-    public init(xmlStringValue: String) throws {
-        guard let data = Data(base64Encoded: xmlStringValue) else {
-            throw XMLValueError.invalidFormat(expected: "base64-encoded data", found: xmlStringValue)
-        }
-        self = data
-    }
-}
-
 extension RawRepresentable where RawValue: XMLValueEncodable {
     public var xmlStringValue: String {
         rawValue.xmlStringValue

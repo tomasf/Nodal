@@ -197,6 +197,128 @@ struct CodableProtocolTests {
         #expect(decodedData == originalData)
     }
 
+    @Test
+    func dataHexEncoding() throws {
+        let doc = Document()
+        doc.dataFormat = .hex
+        let root = doc.makeDocumentElement(name: "root")
+
+        let originalData = Data([0x48, 0x65, 0x6C, 0x6C, 0x6F]) // "Hello"
+        root.setValue(originalData, forAttribute: "data")
+
+        #expect(root[attribute: "data"] == "48656c6c6f")
+
+        let decoded: Data = try root.value(forAttribute: "data")
+        #expect(decoded == originalData)
+    }
+
+    @Test
+    func dataHexContent() throws {
+        let doc = Document()
+        doc.dataFormat = .hex
+        let root = doc.makeDocumentElement(name: "data")
+
+        let originalData = Data([0x48, 0x65, 0x6C, 0x6C, 0x6F])
+        root.setContent(originalData)
+
+        #expect(root.textContent == "48656c6c6f")
+
+        let decoded: Data = try root.content()
+        #expect(decoded == originalData)
+    }
+
+    @Test
+    func dataHexInvalid() throws {
+        let doc = try Document(string: "<root data=\"xyz\"/>")
+        doc.dataFormat = .hex
+
+        #expect(throws: XMLValueError.self) {
+            let _: Data = try doc.documentElement!.value(forAttribute: "data")
+        }
+    }
+
+    @Test
+    func dataHexOddLength() throws {
+        let doc = try Document(string: "<root data=\"abc\"/>")
+        doc.dataFormat = .hex
+
+        #expect(throws: XMLValueError.self) {
+            let _: Data = try doc.documentElement!.value(forAttribute: "data")
+        }
+    }
+
+    @Test
+    func dataCustomFormat() throws {
+        let doc = Document()
+        doc.dataFormat = .custom(
+            encode: { data in data.map { String(format: "%02X", $0) }.joined() },
+            decode: { string in
+                let hex = string.lowercased()
+                guard hex.count % 2 == 0 else {
+                    throw XMLValueError.invalidFormat(expected: "uppercase hex", found: string)
+                }
+                var data = Data(capacity: hex.count / 2)
+                var index = hex.startIndex
+                while index < hex.endIndex {
+                    let nextIndex = hex.index(index, offsetBy: 2)
+                    guard let byte = UInt8(hex[index..<nextIndex], radix: 16) else {
+                        throw XMLValueError.invalidFormat(expected: "uppercase hex", found: string)
+                    }
+                    data.append(byte)
+                    index = nextIndex
+                }
+                return data
+            }
+        )
+        let root = doc.makeDocumentElement(name: "root")
+
+        let originalData = Data([0x48, 0x65, 0x6C, 0x6C, 0x6F])
+        root.setValue(originalData, forAttribute: "data")
+
+        // Custom format uses uppercase
+        #expect(root[attribute: "data"] == "48656C6C6F")
+
+        let decoded: Data = try root.value(forAttribute: "data")
+        #expect(decoded == originalData)
+    }
+
+    @Test
+    func dataArray() throws {
+        let doc = Document()
+        doc.dataFormat = .hex
+        let root = doc.makeDocumentElement(name: "root")
+
+        let dataArray = [
+            Data([0x01, 0x02]),
+            Data([0x03, 0x04]),
+            Data([0x05, 0x06])
+        ]
+        root.setValue(dataArray, forAttribute: "items")
+
+        #expect(root[attribute: "items"] == "0102 0304 0506")
+
+        let decoded: [Data] = try root.value(forAttribute: "items")
+        #expect(decoded == dataArray)
+    }
+
+    @Test
+    func dataArrayContent() throws {
+        let doc = Document()
+        doc.dataFormat = .hex
+        let root = doc.makeDocumentElement(name: "data")
+
+        let dataArray = [
+            Data([0xAB, 0xCD]),
+            Data([0xEF, 0x12])
+        ]
+        root.setContent(dataArray)
+
+        #expect(root.textContent == "abcd ef12")
+
+        let decoded: [Data] = try root.content()
+        #expect(decoded == dataArray)
+    }
+
     // MARK: - Date
 
     @Test
