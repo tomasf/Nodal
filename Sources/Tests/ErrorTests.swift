@@ -95,7 +95,7 @@ struct ErrorTests {
         let doc = try Document(string: "<root/>")
         let root = doc.documentElement!
 
-        let value: String? = try root.value(forAttribute: "missing")
+        let value: String? = root.value(forAttribute: "missing")
         #expect(value == nil)
     }
 

@@ -17,7 +17,7 @@ struct ParsingTests {
         do {
             _ = try Document(string: "<a></b>")
             Issue.record("Expected endElementMismatch error")
-        } catch let error as Document.ParseError {
+        } catch let error {
             #expect(error.reason == .endElementMismatch)
         }
     }
@@ -87,7 +87,7 @@ struct ParsingTests {
         do {
             _ = try Document(url: nonexistentURL)
             Issue.record("Expected fileNotFound error")
-        } catch let error as Document.ParseError {
+        } catch let error {
             #expect(error.reason == .fileNotFound)
         }
     }
@@ -172,7 +172,7 @@ struct ParsingTests {
         do {
             _ = try Document(string: xml)
             Issue.record("Expected parse error")
-        } catch let error as Document.ParseError {
+        } catch let error {
             #expect(error.offset > 0)
             #expect(!error.description.isEmpty)
         }

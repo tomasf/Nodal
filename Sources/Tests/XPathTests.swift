@@ -153,7 +153,7 @@ struct XPathTests {
         do {
             _ = try XPathQuery("/root[")
             Issue.record("Expected parse error")
-        } catch let error as XPathQuery.ParseError {
+        } catch let error {
             #expect(error.offset >= 0)
             #expect(!error.description.isEmpty)
         }
