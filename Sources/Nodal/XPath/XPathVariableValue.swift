@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 internal protocol XPathVariableValue {
     func define(in variableSet: inout pugi.xpath_variable_set, for key: String)

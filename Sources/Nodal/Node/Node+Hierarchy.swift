@@ -1,6 +1,6 @@
 import Foundation
-@_implementationOnly import pugixml
-@_implementationOnly import Bridge
+internal import pugixml
+internal import Bridge
 
 public extension Node {
     /// The parent node of this node, or `nil` if this node has no parent.

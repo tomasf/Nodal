@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 public struct OutputOptions: OptionSet, Sendable {
     public init(rawValue: UInt32) {

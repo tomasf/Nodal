@@ -1,9 +1,10 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 /// Represents an XPath query for evaluating expressions against an XML document.
 public class XPathQuery {
     internal var query: pugi.xpath_query
+    private var variableSet = pugi.xpath_variable_set()
 
     /// Creates an XPath query with the specified expression and optional variables.
     ///
@@ -17,7 +18,6 @@ public class XPathQuery {
     ///   let query = try XPathQuery("//book[@category = $category]", variables: ["category": "fiction"])
     ///   ```
     public init(_ expression: String, variables: [String: Any] = [:]) throws(ParseError) {
-        var variableSet = pugi.xpath_variable_set()
         for (key, value) in variables {
             guard let variableValue = value as? XPathVariableValue else {
                 preconditionFailure("Unsupported variable type for name \"\(key)\"")

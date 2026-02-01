@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 internal extension Document {
     func clearDocumentElement() -> Node {

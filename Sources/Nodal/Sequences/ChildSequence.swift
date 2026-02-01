@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 // Visits all children of the target
 internal struct ChildSequence: Sequence, IteratorProtocol {

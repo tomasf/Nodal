@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 public extension Document {
     /// A set of namespace names that are referenced in the document but have not been declared.

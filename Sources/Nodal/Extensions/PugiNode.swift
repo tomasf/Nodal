@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 // Wrapper to make pugi.xml_node Hashable without exposing it in the public interface
 internal struct HashableNode: Hashable {

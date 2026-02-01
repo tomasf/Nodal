@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 // Visits all attributes of the target and its ancestors
 internal struct AncestorAttributeSequence: Sequence, IteratorProtocol {

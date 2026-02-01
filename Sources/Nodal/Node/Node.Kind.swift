@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 /// Represents the types of XML nodes.
 public extension Node {

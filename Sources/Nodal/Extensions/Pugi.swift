@@ -1,5 +1,5 @@
-@_implementationOnly import pugixml
-@_implementationOnly import Bridge
+internal import pugixml
+internal import Bridge
 import Foundation
 
 extension pugi.xml_attribute {

@@ -7,8 +7,9 @@ import Foundation
 public protocol XMLValueEncodable {
     /// Converts the value to an XML-compatible string representation.
     ///
+    /// - Parameter node: The node context, providing access to document-level configuration.
     /// - Returns: A `String` representation suitable for use in an XML attribute or text content.
-    var xmlStringValue: String { get }
+    func xmlStringValue(for node: Node) -> String
 }
 
 /// A type that can be initialized from an XML-compatible string, used in attributes or text content.
@@ -18,33 +19,35 @@ public protocol XMLValueEncodable {
 public protocol XMLValueDecodable {
     /// Initializes an instance from an XML-compatible string.
     ///
-    /// - Parameter xmlStringValue: The string representation of the value.
+    /// - Parameters:
+    ///   - xmlStringValue: The string representation of the value.
+    ///   - node: The node context, providing access to document-level configuration.
     /// - Throws: `XMLValueError.invalidFormat` if the string cannot be parsed.
-    init(xmlStringValue: String) throws
+    init(xmlStringValue: String, for node: Node) throws
 }
 
 public typealias XMLValueCodable = XMLValueEncodable & XMLValueDecodable
 
 
 internal extension Array where Element: XMLValueDecodable {
-    init(xmlStringValue: String) throws {
+    init(xmlStringValue: String, for node: Node) throws {
         self = try xmlStringValue
             .components(separatedBy: .whitespacesAndNewlines)
             .filter { !$0.isEmpty }
             .map {
-                try Element.init(xmlStringValue: $0)
+                try Element.init(xmlStringValue: $0, for: node)
             }
     }
 }
 
 internal extension Array where Element: XMLValueEncodable {
-    var xmlStringValue: String {
-        map(\.xmlStringValue).joined(separator: " ")
+    func xmlStringValue(for node: Node) -> String {
+        map { $0.xmlStringValue(for: node) }.joined(separator: " ")
     }
 }
 
 public enum XMLValueError: Error {
     case invalidFormat(expected: String, found: String)
-    case missingAttribute (any AttributeName)
-    case missingExpandedAttribute (ExpandedName)
+    case missingAttribute(String)
+    case missingExpandedAttribute(ExpandedName)
 }

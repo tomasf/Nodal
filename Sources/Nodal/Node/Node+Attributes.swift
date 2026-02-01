@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 internal extension Node {
     func value(forAttribute name: String) -> String? {
@@ -114,10 +114,21 @@ public extension Node {
 
     /// Accesses the value of an attribute by its name.
     ///
-    /// - Parameter name: The name of the attribute to access; either a `String` or an `ExpandedName`.
+    /// - Parameter name: The name of the attribute to access.
     /// - Returns: The value of the attribute if it exists, or `nil` if no such attribute is found.
     ///
-    /// - Note: When setting an attribute with an expanded name, its namespace is resolved based on the current scope. If `nil` is assigned, the attribute is removed.
+    /// - Note: If `nil` is assigned, the attribute is removed.
+    subscript(attribute name: String) -> String? {
+        get { value(forAttribute: name) }
+        nonmutating set { setValue(newValue, forAttribute: name) }
+    }
+
+    /// Accesses the value of an attribute by its expanded name.
+    ///
+    /// - Parameter name: The expanded name of the attribute to access.
+    /// - Returns: The value of the attribute if it exists, or `nil` if no such attribute is found.
+    ///
+    /// - Note: When setting an attribute, its namespace is resolved based on the current scope. If `nil` is assigned, the attribute is removed.
     ///
     /// - Example:
     ///   ```swift
@@ -126,16 +137,15 @@ public extension Node {
     ///   let value = element[attribute: name] // Retrieves the value
     ///   element[attribute: name] = nil // Removes the attribute
     ///   ```
-    subscript(attribute name: AttributeName) -> String? {
+    subscript(attribute name: ExpandedName) -> String? {
         get {
-            if let qName = name.qualifiedName(in: self) {
+            if let qName = name.qualifiedAttributeNameIncludingPending(in: self) {
                 return value(forAttribute: qName)
-            } else {
-                return nil
             }
+            return nil
         }
         nonmutating set {
-            let qName = name.requestQualifiedName(in: self)
+            let qName = name.requestQualifiedAttributeName(for: self)
             setValue(newValue, forAttribute: qName)
         }
     }

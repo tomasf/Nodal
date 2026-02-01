@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 internal extension String {
     func matchesElementName(node: pugi.xml_node, in document: Document) -> Bool {
@@ -14,27 +14,8 @@ internal extension ExpandedName {
 }
 
 
-public protocol AttributeName: Sendable {
-    func requestQualifiedName(in node: Node) -> String
-    func qualifiedName(in: Node) -> String?
-}
-
-extension String: AttributeName {
-    public func requestQualifiedName(in node: Node) -> String {
-        self
-    }
-
-    public func qualifiedName(in: Node) -> String? {
-        self
-    }
-}
-
-extension ExpandedName: AttributeName {
-    public func requestQualifiedName(in node: Node) -> String {
-        requestQualifiedAttributeName(for: node)
-    }
-
-    public func qualifiedName(in node: Node) -> String? {
+internal extension ExpandedName {
+    func qualifiedAttributeNameIncludingPending(in node: Node) -> String? {
         if let match = qualifiedAttributeName(in: node) {
             return match
         } else if let placeholder = node.pendingNameRecord?.attributes[self] {

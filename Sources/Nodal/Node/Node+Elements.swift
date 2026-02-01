@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import pugixml
+internal import pugixml
 
 public extension Node {
     /// The parent element of this node, or `nil` if its parent is not an element.
