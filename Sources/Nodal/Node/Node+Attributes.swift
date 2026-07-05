@@ -29,6 +29,25 @@ internal extension Node {
 }
 
 public extension Node {
+    /// Appends an attribute with the given name and value, without checking whether an attribute
+    /// with the same name already exists.
+    ///
+    /// This is a fast path for populating newly created elements, skipping the existing-attribute
+    /// lookup that `subscript(attribute:)` performs. Only use this when the attribute is known
+    /// not to exist yet; otherwise a duplicate attribute is created.
+    ///
+    /// - Parameters:
+    ///   - value: The attribute value.
+    ///   - name: The qualified name of the attribute.
+    func appendValue(_ value: String, forAttribute name: String) {
+        var node = node
+        var attr = node.append_attribute(name)
+        attr.set_value(value)
+        if name.hasPrefix("xmlns") {
+            document.declaredNamespacesDidChange(for: self)
+        }
+    }
+
     /// A Boolean value indicating whether this node type supports attributes.
     ///
     /// Attributes can be assigned to nodes of type `.element` or `.declaration`.
