@@ -17,7 +17,16 @@ internal extension String {
     }
 
     var trimmed: String {
-        trimmingCharacters(in: .whitespacesAndNewlines)
+        // Fast path: most values in real-world XML have no leading or trailing whitespace
+        func isASCIIWhitespace(_ byte: UInt8) -> Bool {
+            byte == 0x20 || byte == 0x09 || byte == 0x0A || byte == 0x0D
+        }
+        guard let first = utf8.first, let last = utf8.last,
+              isASCIIWhitespace(first) || isASCIIWhitespace(last)
+        else {
+            return self
+        }
+        return trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 
