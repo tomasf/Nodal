@@ -1,4 +1,5 @@
 import Foundation
+internal import pugixml
 
 public extension Node {
     /// Decodes an optional XML element into the specified type.
@@ -81,7 +82,17 @@ public extension Node {
         } else {
             parent = self
         }
-        return try parent[elements: name].map { try T.init(from: $0) }
+        // Collect raw pugixml nodes (no ARC, unlike `Node`) to get an exact count first,
+        // so `result` below can reserve capacity instead of growing repeatedly.
+        let matches: [pugi.xml_node] = parent.node.children.filter {
+            $0.type() == pugi.node_element && name.matchesElementName(node: $0, in: parent.document)
+        }
+        var result: [T] = []
+        result.reserveCapacity(matches.count)
+        for child in matches {
+            result.append(try T.init(from: child.wrapped(in: parent.document)))
+        }
+        return result
     }
 
     /// Decodes an array of XML elements into the specified type.
@@ -106,7 +117,16 @@ public extension Node {
         } else {
             parent = self
         }
-        return try parent[elements: name].map { try T.init(from: $0) }
+        // See the `String`-keyed overload above for why this avoids `[elements:]`.
+        let matches: [pugi.xml_node] = parent.node.children.filter {
+            $0.type() == pugi.node_element && name.matchesElementName(node: $0, in: parent.document)
+        }
+        var result: [T] = []
+        result.reserveCapacity(matches.count)
+        for child in matches {
+            result.append(try T.init(from: child.wrapped(in: parent.document)))
+        }
+        return result
     }
 }
 
