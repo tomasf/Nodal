@@ -39,7 +39,9 @@ public extension XPathQuery {
     /// - Parameter baseNode: The node against which to evaluate the XPath query.
     /// - Returns: The result of the query as a `String`.
     func stringResult(with baseNode: Node) -> String {
-        String(query.evaluate_string(.init(baseNode.node)))
+        // String(std.string) comes from the CxxStdlib overlay, which Swift's WebAssembly SDK lacks
+        let result = query.evaluate_string(.init(baseNode.node))
+        return String(cString: result.__c_strUnsafe())
     }
 
     /// Evaluates the XPath expression as a double result relative to the specified base node.
