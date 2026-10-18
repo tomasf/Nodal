@@ -4,7 +4,7 @@ Nodal is a Swift library for working with XML documents using DOM-like trees. It
 
 Nodal is based on [pugixml](https://github.com/zeux/pugixml) and adds a convenient Swift layer as well as support for XML namespaces. The entire public API has DocC documentation.
 
-[![Swift](https://github.com/tomasf/Nodal/actions/workflows/swift.yml/badge.svg)](https://github.com/tomasf/Nodal/actions/workflows/swift.yml) ![Platforms](https://img.shields.io/badge/Platforms-macOS_%7C_iOS_%7C_tvOS_%7C_watchOS_%7C_visionOS_%7C_Linux_%7C_Windows-47D?logo=swift&logoColor=white)
+[![Swift](https://github.com/tomasf/Nodal/actions/workflows/swift.yml/badge.svg)](https://github.com/tomasf/Nodal/actions/workflows/swift.yml) ![Platforms](https://img.shields.io/badge/Platforms-macOS_%7C_iOS_%7C_tvOS_%7C_watchOS_%7C_visionOS_%7C_Linux_%7C_Windows_%7C_WebAssembly-47D?logo=swift&logoColor=white)
 
 ## Installation
 
